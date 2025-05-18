@@ -1,6 +1,7 @@
-package com.tante.landlordtenant.models;
+package com.tante.landlordtenant.models.Entities;
 
-import javax.persistence.*;
+
+import jakarta.persistence.Column;
 
 public class Tenant
 {

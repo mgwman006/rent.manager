@@ -1,8 +1,9 @@
-package com.tante.landlordtenant.models;
+package com.tante.landlordtenant.models.Entities;
 
-import com.tante.landlordtenant.models.Landlord.Landlord;
+import com.tante.landlordtenant.models.Entities.Landlord.Landlord;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
 
-import javax.persistence.*;
 import java.util.List;
 
 public class House

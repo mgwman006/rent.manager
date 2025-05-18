@@ -1,23 +1,18 @@
-package com.tante.landlordtenant.models;
+package com.tante.landlordtenant.models.Entities;
 
-import com.tante.landlordtenant.models.Landlord.Landlord;
+import com.tante.landlordtenant.models.Entities.Landlord.Landlord;
 
-import javax.persistence.*;
 import java.util.Date;
 
 public class Contract
 {
 
-    @Column(name = "contract_id")
     String contractId;
 
-    @Column(name = "start_date")
     Date startDate;
 
-    @Column(name = "end_date")
     Date endDate;
 
-    @Column(name = "amount")
     int amount;
 
     Landlord landlord;

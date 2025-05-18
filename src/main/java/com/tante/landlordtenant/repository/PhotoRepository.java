@@ -1,7 +1,6 @@
 package com.tante.landlordtenant.repository;
 
-import com.tante.landlordtenant.models.Photo;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.tante.landlordtenant.models.Entities.Photo;
 
 import java.util.List;
 

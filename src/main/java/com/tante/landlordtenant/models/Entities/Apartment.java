@@ -1,6 +1,8 @@
-package com.tante.landlordtenant.models;
+package com.tante.landlordtenant.models.Entities;
 
-import javax.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+
 import java.util.List;
 
 public class Apartment
