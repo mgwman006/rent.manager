@@ -1,27 +1,22 @@
-package com.tante.landlordtenant.model;
+package com.tante.landlordtenant.models;
+
+import com.tante.landlordtenant.models.Landlord.Landlord;
 
 import javax.persistence.*;
 import java.util.List;
 
-@Entity
-@Table(name = "houses")
 public class House
 {
     @Id
     @Column(name = "house_id")
     String houseId;
 
-    @OneToMany(mappedBy = "house", cascade = CascadeType.ALL)
     List<Photo> photoList;
 
-    @OneToMany (mappedBy = "house", cascade = CascadeType.ALL)
     List<Apartment> apartments;
 
-    @OneToOne (mappedBy = "house")
     MailingAddress address;
 
-    @ManyToOne
-    @JoinColumn(name = "landlord_id")
     Landlord landlord;
 
     public House() {

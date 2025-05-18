@@ -1,12 +1,10 @@
-package com.tante.landlordtenant.model;
+package com.tante.landlordtenant.models;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "tenants")
 public class Tenant
 {
-    @Id
+
     @Column(name = "tenant_id")
     private String tenantId;
 
@@ -25,7 +23,6 @@ public class Tenant
     @Column(name = "email_id")
     private String emailId;
 
-    @OneToOne(mappedBy = "tenant", cascade = CascadeType.ALL)
     Contract contract;
 
     public Tenant() {

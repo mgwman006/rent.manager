@@ -1,9 +1,8 @@
-package com.tante.landlordtenant.model;
+package com.tante.landlordtenant.models;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "mailingaddresses")
+
 public class MailingAddress
 {
     @Id
@@ -28,8 +27,6 @@ public class MailingAddress
     @Column(name = "post_code")
     String postCode;
 
-    @OneToOne
-    @JoinColumn(name = "house_id")
     House house;
 
     public MailingAddress() {

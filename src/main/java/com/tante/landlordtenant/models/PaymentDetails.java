@@ -1,9 +1,10 @@
-package com.tante.landlordtenant.model;
+package com.tante.landlordtenant.models;
+
+import com.tante.landlordtenant.models.Landlord.Landlord;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "paymentdetails")
+
 public class PaymentDetails
 {
     @Id
@@ -19,8 +20,6 @@ public class PaymentDetails
     @Column(name = "account_number")
     String accountNumber;
 
-    @ManyToOne
-    @JoinColumn(name = "landlord_id")
     Landlord landlord;
 
     public PaymentDetails() {
