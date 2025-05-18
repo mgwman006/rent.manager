@@ -1,11 +1,7 @@
 package com.tante.landlordtenant.service;
 
-import com.tante.landlordtenant.models.Photo;
 import com.tante.landlordtenant.repository.PhotoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-import java.util.Optional;
 
 public class PhotoService
 {

@@ -1,10 +1,10 @@
-package com.tante.landlordtenant.models.Landlord;
+package com.tante.landlordtenant.models.Entities.Landlord;
 
-import com.tante.landlordtenant.models.Contract;
-import com.tante.landlordtenant.models.House;
-import com.tante.landlordtenant.models.PaymentDetails;
+import com.tante.landlordtenant.models.Entities.Contract;
+import com.tante.landlordtenant.models.Entities.House;
+import com.tante.landlordtenant.models.Entities.PaymentDetails;
+import jakarta.persistence.Column;
 
-import javax.persistence.*;
 import java.util.List;
 
 public class Landlord

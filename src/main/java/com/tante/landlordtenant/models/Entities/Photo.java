@@ -1,7 +1,8 @@
-package com.tante.landlordtenant.models;
+package com.tante.landlordtenant.models.Entities;
 
-import javax.persistence.*;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
 
 public class Photo
 {
