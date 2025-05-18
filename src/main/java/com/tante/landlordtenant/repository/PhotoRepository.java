@@ -1,11 +1,11 @@
 package com.tante.landlordtenant.repository;
 
-import com.tante.landlordtenant.model.Photo;
+import com.tante.landlordtenant.models.Photo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface PhotoRepository extends JpaRepository<Photo,String>
+public interface PhotoRepository
 {
     List<Photo> findByHouseId(String houseId);
     List<Photo> findByApartmentId(String apartmentId);

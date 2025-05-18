@@ -1,10 +1,8 @@
-package com.tante.landlordtenant.model;
+package com.tante.landlordtenant.models;
 
 import javax.persistence.*;
 import java.util.List;
 
-@Entity
-@Table(name = "apartments")
 public class Apartment
 {
     @Id
@@ -14,29 +12,20 @@ public class Apartment
     @Column(name="rent")
     int rent;
 
-    @OneToMany(mappedBy = "apartment", cascade = CascadeType.ALL)
     List<Photo> photoList;
 
-    @ManyToOne
-    @JoinColumn(name="house_id")
     House house;
 
-    @OneToOne(mappedBy = "apartment")
     Contract contract;
 
-    @Column(name = "status")
     String status;
 
-    @Column(name="bed_room")
     int bedRoom;
 
-    @Column(name = "master_room")
     int masterRoom;
 
-    @Column(name = "sitting_room")
     String sittingRoom;
 
-    @Column(name = "public_toilet")
     String publicToilet;
 
     @Column(name = "kitchen")

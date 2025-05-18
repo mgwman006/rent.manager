@@ -1,11 +1,9 @@
 package com.tante.landlordtenant.repository;
 
-import com.tante.landlordtenant.models.Tenant;
+import com.tante.landlordtenant.models.User.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TenantRepository
-{
-
+public interface UserRepository extends JpaRepository<User,Long> {
 }

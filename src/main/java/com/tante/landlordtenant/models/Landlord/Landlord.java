@@ -1,14 +1,15 @@
-package com.tante.landlordtenant.model;
+package com.tante.landlordtenant.models.Landlord;
+
+import com.tante.landlordtenant.models.Contract;
+import com.tante.landlordtenant.models.House;
+import com.tante.landlordtenant.models.PaymentDetails;
 
 import javax.persistence.*;
-import javax.print.attribute.standard.MediaSize;
 import java.util.List;
 
-@Entity
-@Table(name = "landlords")
 public class Landlord
 {
-    @Id
+
     @Column(name = "landlord_id")
     private String landlordId;
 
@@ -27,13 +28,10 @@ public class Landlord
     @Column (name = "profile_picture")
     String profilePicture;
 
-    @OneToMany(mappedBy = "landlord", cascade = CascadeType.ALL)
     private List<PaymentDetails> paymentDetails;
 
-    @OneToMany(mappedBy = "landlord", cascade = CascadeType.ALL)
     private List<House> houses;
 
-    @OneToMany(mappedBy = "landlord", cascade = CascadeType.ALL)
     private List<Contract> contracts;
 
     public Landlord() {

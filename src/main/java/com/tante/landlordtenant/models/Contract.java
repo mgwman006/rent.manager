@@ -1,13 +1,13 @@
-package com.tante.landlordtenant.model;
+package com.tante.landlordtenant.models;
+
+import com.tante.landlordtenant.models.Landlord.Landlord;
 
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity
-@Table(name = "contracts")
 public class Contract
 {
-    @Id
+
     @Column(name = "contract_id")
     String contractId;
 
@@ -20,16 +20,10 @@ public class Contract
     @Column(name = "amount")
     int amount;
 
-    @ManyToOne
-    @JoinColumn(name = "landlord_id")
     Landlord landlord;
 
-    @OneToOne
-    @JoinColumn(name = "tenant_id")
     Tenant tenant;
 
-    @OneToOne
-    @JoinColumn(name="apartment_id")
     Apartment apartment;
 
     public Contract() {

@@ -1,9 +1,8 @@
-package com.tante.landlordtenant.model;
+package com.tante.landlordtenant.models;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "photos")
+
 public class Photo
 {
     @Id
@@ -13,12 +12,8 @@ public class Photo
     @Column(name = "photo_path")
     String photoPath;
 
-    @ManyToOne
-    @JoinColumn(name = "apartment_id")
     Apartment apartment;
 
-    @ManyToOne
-    @JoinColumn(name = "house_id")
     Apartment house;
 
     public Photo() {
