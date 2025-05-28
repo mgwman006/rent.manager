@@ -1,6 +1,8 @@
 package com.tante.landlordtenant.models.Entities.Users;
 
 
+import com.tante.landlordtenant.models.Entities.Landlord.Landlord;
+import com.tante.landlordtenant.models.Entities.Tenants.Tenant;
 import jakarta.persistence.*;
 
 
@@ -11,41 +13,24 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String firstName;
-    private  String lastName;
     @Column(unique = true)
     private  String email;
     private String passWord;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Tenant tenant;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Landlord landlord;
 
     public User() {
     }
 
-    public User(String firstName, String lastName, String email, String passWord) {
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public User(String email, String passWord) {
         this.email = email;
         this.passWord = passWord;
     }
 
     public Long getId() {
         return id;
-    }
-
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
     }
 
     public String getEmail() {
@@ -64,26 +49,19 @@ public class User {
         this.passWord = passWord;
     }
 
-    public void update(
-            String firstName,
-            String lastName,
-            String email,
-            String passWord) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.passWord = passWord;
+    public Tenant getTenant() {
+        return tenant;
     }
 
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
+    }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", firsName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + passWord + '\'' +
-                '}';
+    public Landlord getLandlord() {
+        return landlord;
+    }
+
+    public void setLandlord(Landlord landlord) {
+        this.landlord = landlord;
     }
 }

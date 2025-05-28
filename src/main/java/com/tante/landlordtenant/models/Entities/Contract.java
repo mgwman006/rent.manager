@@ -1,6 +1,7 @@
 package com.tante.landlordtenant.models.Entities;
 
 import com.tante.landlordtenant.models.Entities.Landlord.Landlord;
+import com.tante.landlordtenant.models.Entities.Tenants.Tenant;
 
 import java.util.Date;
 

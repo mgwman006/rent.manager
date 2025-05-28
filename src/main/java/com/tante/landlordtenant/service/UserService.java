@@ -22,31 +22,35 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public UserResponseDto registerUser(NewUserRequestDto userRequest) {
-
-        User newUser = new User(
-                userRequest.firstName(),
-                userRequest.lastName(),
-                userRequest.email(),
-                userRequest.passWord()
-        );
-        User createdUser = userRepository.save(newUser);
-        return new UserResponseDto(
-                createdUser.getId(),
-                createdUser.getFirstName(),
-                createdUser.getLastName(),
-                createdUser.getEmail(),
-                Optional.of(createdUser.getPassWord()));
-    }
+//    public UserResponseDto registerUser(NewUserRequestDto userRequest) {
+//
+//        User newUser = new User(
+//                userRequest.firstName(),
+//                userRequest.lastName(),
+//                userRequest.email(),
+//                userRequest.passWord()
+//        );
+//        User createdUser = userRepository.save(newUser);
+//        System.out.println(createdUser.toString());
+//        return new UserResponseDto(
+//                createdUser.getId(),
+//                createdUser.getFirstName(),
+//                createdUser.getLastName(),
+//                createdUser.getEmail(),
+//                Optional.of(createdUser.getPassWord()));
+//    }
 
     public List<UserResponseDto> getAllUsers() {
         List<User> users = userRepository.findAll();
-        return  users.stream().map(u -> new
-                UserResponseDto(u.getId(),
-                u.getFirstName(),
-                u.getLastName(),
-                u.getEmail(),
-                Optional.empty())).toList();
+        return  users.stream().map
+                (u -> new
+                    UserResponseDto
+                    (
+                            u.getId(),
+                            u.getEmail(),
+                            u.getPassWord()
+                    )
+                ).toList();
     }
 
     public Optional<UserResponseDto> getUserById(Long userId)
@@ -57,10 +61,8 @@ public class UserService {
         User user = userOptional.get();
         return Optional.of( new UserResponseDto(
                 user.getId(),
-                user.getFirstName(),
-                user.getLastName(),
                 user.getEmail(),
-                Optional.empty()));
+                user.getPassWord()));
     }
 
     public UserLogInResponseDto logIng(UserLogInRequestDto logInRequest) {
@@ -85,45 +87,44 @@ public class UserService {
                 "success",
                 Optional.of( new UserResponseDto(
                         user.getId(),
-                        user.getFirstName(),
-                        user.getLastName(),
                         user.getEmail(),
-                        Optional.of(user.getPassWord())
-                )));
+                        user.getPassWord()
+                        )
+                ));
     }
 
-    public UpdateUserResponseDto updateUser(Long userId, UpdateUserRequestDto updateUserRequest)
-    {
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isEmpty())
-            return new UpdateUserResponseDto(
-                UserStatus.UpdateFail,
-                    "User Not Exist",
-                    Optional.empty()
-            );
-
-        User user = optionalUser.get();
-        user.update(
-                updateUserRequest.firstName(),
-                updateUserRequest.lastName(),
-                updateUserRequest.email(),
-                updateUserRequest.passWord()
-        );
-
-        User updated = userRepository.save(user);
-
-        return new UpdateUserResponseDto(
-                UserStatus.UpdateSuccess,
-                "update success",
-                Optional.of(new UserResponseDto(
-                        user.getId(),
-                        user.getFirstName(),
-                        user.getLastName(),
-                        user.getEmail(),
-                        Optional.of(user.getPassWord())
-                ))
-        );
-
-
-    }
+//    public UpdateUserResponseDto updateUser(Long userId, UpdateUserRequestDto updateUserRequest)
+//    {
+//        Optional<User> optionalUser = userRepository.findById(userId);
+//        if (optionalUser.isEmpty())
+//            return new UpdateUserResponseDto(
+//                UserStatus.UpdateFail,
+//                    "User Not Exist",
+//                    Optional.empty()
+//            );
+//
+//        User user = optionalUser.get();
+//        user.update(
+//                updateUserRequest.firstName(),
+//                updateUserRequest.lastName(),
+//                updateUserRequest.email(),
+//                updateUserRequest.passWord()
+//        );
+//
+//        User updated = userRepository.save(user);
+//
+//        return new UpdateUserResponseDto(
+//                UserStatus.UpdateSuccess,
+//                "update success",
+//                Optional.of(new UserResponseDto(
+//                        user.getId(),
+//                        user.getFirstName(),
+//                        user.getLastName(),
+//                        user.getEmail(),
+//                        Optional.of(user.getPassWord())
+//                ))
+//        );
+//
+//
+//    }
 }
