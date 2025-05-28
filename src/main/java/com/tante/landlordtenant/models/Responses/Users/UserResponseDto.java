@@ -4,8 +4,6 @@ import java.util.Optional;
 
 public record UserResponseDto(
         Long id,
-        String firstName,
-        String lastName,
         String email,
-        Optional<String> passWord) {
+        String passWord) {
 }

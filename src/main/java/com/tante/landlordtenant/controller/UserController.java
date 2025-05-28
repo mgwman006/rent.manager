@@ -17,6 +17,8 @@ import java.util.Optional;
 
 @RequestMapping("/api/v1/users")
 @RestController
+@CrossOrigin(origins = "*") // Allow only this origin
+
 public class UserController {
 
     private final UserService userService;
@@ -24,14 +26,14 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    @PostMapping
-    public ResponseEntity<UserResponseDto> registerUser(@RequestBody NewUserRequestDto userRequest)
-    {
-        UserResponseDto createdUser = userService.registerUser(userRequest);
-        URI location = URI.create("users/"+createdUser.id());
-        return ResponseEntity.created(location).body(createdUser);
-    }
+//
+//    @PostMapping
+//    public ResponseEntity<UserResponseDto> registerUser(@RequestBody NewUserRequestDto userRequest)
+//    {
+//        UserResponseDto createdUser = userService.registerUser(userRequest);
+//        URI location = URI.create("users/"+createdUser.id());
+//        return ResponseEntity.created(location).body(createdUser);
+//    }
 
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUsers()
@@ -54,13 +56,13 @@ public class UserController {
         return ResponseEntity.ok(userLogInResponse);
     }
 
-    @PutMapping("/{userId}")
-    public ResponseEntity<UpdateUserResponseDto> updateUser(
-            @PathVariable Long userId,
-            @RequestBody UpdateUserRequestDto updateUserRequest
-            )
-    {
-        UpdateUserResponseDto updateUserResponse = userService.updateUser(userId,updateUserRequest);
-        return ResponseEntity.ok(updateUserResponse);
-    }
+//    @PutMapping("/{userId}")
+//    public ResponseEntity<UpdateUserResponseDto> updateUser(
+//            @PathVariable Long userId,
+//            @RequestBody UpdateUserRequestDto updateUserRequest
+//            )
+//    {
+//        UpdateUserResponseDto updateUserResponse = userService.updateUser(userId,updateUserRequest);
+//        return ResponseEntity.ok(updateUserResponse);
+//    }
 }

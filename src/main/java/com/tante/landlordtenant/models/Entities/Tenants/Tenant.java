@@ -1,19 +1,15 @@
-package com.tante.landlordtenant.models.Entities.Landlord;
+package com.tante.landlordtenant.models.Entities.Tenants;
+
 
 import com.tante.landlordtenant.models.Entities.Contract;
-import com.tante.landlordtenant.models.Entities.House;
-import com.tante.landlordtenant.models.Entities.PaymentDetails;
-import com.tante.landlordtenant.models.Entities.Tenants.Tenant;
+import com.tante.landlordtenant.models.Entities.Landlord.Landlord;
 import com.tante.landlordtenant.models.Entities.Users.User;
 import jakarta.persistence.*;
 
-import java.util.List;
-
 @Entity
-@Table(name = "landlords")
-public class Landlord
+@Table(name = "tenants")
+public class Tenant
 {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,18 +20,18 @@ public class Landlord
     @Column(unique = true)
     private String email;
 
-
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "landlord", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Tenant> tenants;
+    @ManyToOne
+    @JoinColumn(name = "landlord_id")
+    Landlord landlord;
 
-    public Landlord() {
+    public Tenant() {
     }
 
-    public Landlord(String firstName, String lastName, String phoneNumber, String email) {
+    public Tenant(String firstName, String lastName, String phoneNumber, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
@@ -86,11 +82,22 @@ public class Landlord
         this.user = user;
     }
 
-    public List<Tenant> getTenants() {
-        return tenants;
+    public Landlord getLandlord() {
+        return landlord;
     }
 
-    public void setTenants(List<Tenant> tenants) {
-        this.tenants = tenants;
+    public void setLandlord(Landlord landlord) {
+        this.landlord = landlord;
+    }
+
+    @Override
+    public String toString() {
+        return "Tenant{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", email='" + email + '\'' +
+                '}';
     }
 }
