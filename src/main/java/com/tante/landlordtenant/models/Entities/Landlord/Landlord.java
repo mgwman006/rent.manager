@@ -93,4 +93,8 @@ public class Landlord
     public void setTenants(List<Tenant> tenants) {
         this.tenants = tenants;
     }
+    public void addTenant(Tenant tenant)
+    {
+        this.tenants.add(tenant);
+    }
 }
