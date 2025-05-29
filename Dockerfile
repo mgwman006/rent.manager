@@ -32,6 +32,9 @@ FROM eclipse-temurin:17.0.15_6-jre-alpine
 # Copy the jar to the production image from the builder stage.
 COPY --from=builder /app/target/landlordtenant-*.jar /propertymanagement.jar
 
+# Expose port 8080
+EXPOSE 8080
+
 # Run the web service on container startup.
 CMD ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/propertymanagement.jar"]
 
