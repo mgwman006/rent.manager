@@ -3,6 +3,7 @@ package com.tante.landlordtenant.controller;
 import com.tante.landlordtenant.models.Requests.LandLords.LandLordRequestDto;
 import com.tante.landlordtenant.models.Requests.Tenants.TenantRequestDto;
 import com.tante.landlordtenant.models.Responses.LandLords.LandLordResponseDto;
+import com.tante.landlordtenant.models.Responses.LandLords.LandLordWithTenants;
 import com.tante.landlordtenant.models.Responses.Tenants.TenantResponseDto;
 import com.tante.landlordtenant.models.Responses.Users.UserResponseDto;
 import com.tante.landlordtenant.service.LandLordService;
@@ -38,9 +39,9 @@ public class LandLordController {
     }
 
     @GetMapping("{landLordId}/tenant")
-    public ResponseEntity<List<TenantResponseDto>> getTenants(@PathVariable Long landLordId)
+    public ResponseEntity<LandLordWithTenants> getTenants(@PathVariable Long landLordId)
     {
-        List<TenantResponseDto> tenants = landLordService.getTenant(landLordId);
-        return ResponseEntity.ok(tenants);
+        LandLordWithTenants landlord = landLordService.getLandlordWithTenants(landLordId);
+        return ResponseEntity.ok(landlord);
     }
 }

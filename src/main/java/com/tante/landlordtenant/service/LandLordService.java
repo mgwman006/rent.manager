@@ -6,6 +6,7 @@ import com.tante.landlordtenant.models.Entities.Users.User;
 import com.tante.landlordtenant.models.Requests.LandLords.LandLordRequestDto;
 import com.tante.landlordtenant.models.Requests.Tenants.TenantRequestDto;
 import com.tante.landlordtenant.models.Responses.LandLords.LandLordResponseDto;
+import com.tante.landlordtenant.models.Responses.LandLords.LandLordWithTenants;
 import com.tante.landlordtenant.models.Responses.Tenants.TenantResponseDto;
 import com.tante.landlordtenant.repository.LandlordRepository;
 import com.tante.landlordtenant.repository.UserRepository;
@@ -88,19 +89,25 @@ public class LandLordService {
                 .orElseThrow(() -> new EntityNotFoundException("Landlord not found"));
     }
 
-    public List<TenantResponseDto> getTenant(Long landLordId) {
+    public LandLordWithTenants getLandlordWithTenants(Long landLordId) {
         Landlord landlord = getLandlordWithTenant(landLordId);
-        return landlord.getTenants()
-                .stream()
-                .map(t -> new
-                        TenantResponseDto
-                        (
-                            t.getId(),
-                            t.getFirstName(),
-                            t.getLastName(),
-                            t.getPhoneNumber(),
-                            t.getEmail()
-                        )
-                ).toList();
+        return new LandLordWithTenants(
+                new LandLordResponseDto(
+                        landlord.getId(),
+                        landlord.getFirstName(),
+                        landlord.getLastName(),
+                        landlord.getPhoneNumber(),
+                        landlord.getEmail()
+                ),
+                landlord.getTenants()
+                        .stream()
+                        .map(t -> new TenantResponseDto(
+                                t.getId(),
+                                t.getFirstName(),
+                                t.getLastName(),
+                                t.getPhoneNumber(),
+                                t.getEmail()
+                        )).toList()
+        );
     }
 }
