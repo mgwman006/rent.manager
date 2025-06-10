@@ -32,13 +32,16 @@ jobs:
           source: 'target/landlordtenant-*.jar'
           target: '/home/ubuntu/landlordtenant/landlordtenant.jar'
 
-      
       - name: Restart Spring Boot app
         run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_PRIVATE_KEY }} ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key
+          chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
             echo 'Stopping existing process...'
             pkill -TERM -f landlordtenant.jar || true
             sleep 5
             echo 'Starting new process...'
             nohup java -jar /home/ubuntu/landlordtenant/landlordtenant.jar > /dev/null 2>&1 &
           " || true
+          rm private_key
+      
