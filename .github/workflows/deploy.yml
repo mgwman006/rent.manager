@@ -47,6 +47,7 @@ jobs:
           echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
+            set -x
             echo 'Stopping existing process...'
             pkill -TERM -f landlordtenant || true
             sleep 5
