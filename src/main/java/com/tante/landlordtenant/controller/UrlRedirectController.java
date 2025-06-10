@@ -8,12 +8,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/redirect")
 @RestController
 @CrossOrigin(origins = "*")
 public class UrlRedirectController {
 
-    @GetMapping
+    @GetMapping("/")
     public ResponseEntity<Void> redirect() {
         String amplifyUrl = "https://www.tante.tz/";
         return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).header("Location", amplifyUrl).build();
