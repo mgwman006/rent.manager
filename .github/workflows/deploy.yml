@@ -34,11 +34,14 @@ jobs:
           
       - name: Install Java
         run: |
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key
+          chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
             echo 'Installing Java...'
             sudo apt update
             sudo apt install -y openjdk-17-jre-headless
           " || true
+          rm private_key
       - name: Restart Spring Boot app
         run: |
           echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key
