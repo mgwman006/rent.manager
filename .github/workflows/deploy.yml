@@ -31,7 +31,14 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: 'target/landlordtenant-*.jar'
           target: '/home/ubuntu/landlordtenant/landlordtenant.jar'
-
+          
+      - name: Install Java
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
+            echo 'Installing Java...'
+            sudo apt update
+            sudo apt install -y openjdk-17-jre-headless
+          " || true
       - name: Restart Spring Boot app
         run: |
           echo "${{ secrets.EC2_PRIVATE_KEY }}" > private_key
