@@ -32,17 +32,13 @@ jobs:
           source: 'target/landlordtenant-*.jar'
           target: '/home/ubuntu/landlordtenant/landlordtenant.jar'
 
+      
       - name: Restart Spring Boot app
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script: |
-            set +e
-            echo "Stopping existing process..."
-            pkill -TERM -f landlordtenant.jar
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_PRIVATE_KEY }} ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
+            echo 'Stopping existing process...'
+            pkill -TERM -f landlordtenant.jar || true
             sleep 5
-            echo "Starting new process..."
+            echo 'Starting new process...'
             nohup java -jar /home/ubuntu/landlordtenant/landlordtenant.jar > /dev/null 2>&1 &
-            exit 0
+          " || true
