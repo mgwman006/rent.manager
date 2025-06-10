@@ -40,7 +40,6 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             echo "Stopping existing process..."
-            pkill -f landlordtenant.jar || true
+            pkill -TERM -f landlordtenant.jar; sleep 5
             echo "Starting new process..."
             nohup java -jar /home/ubuntu/landlordtenant/landlordtenant.jar > /dev/null 2>&1 &
-            exit 0
