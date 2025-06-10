@@ -51,7 +51,7 @@ jobs:
             pkill -TERM -f landlordtenant.jar || true
             sleep 5
             echo 'Starting new process...'
-            nohup java -jar /home/ubuntu/landlordtenant/landlordtenant.jar > /dev/null 2>&1 &
+            nohup java -jar /home/ubuntu/landlordtenant/landlordtenant.jar/target/landlordtenant-0.0.1-SNAPSHOT.jar > /dev/null 2>&1 &
           " || true
           rm private_key
       
