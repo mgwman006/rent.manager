@@ -48,7 +48,7 @@ jobs:
           chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
             echo 'Stopping existing process...'
-            pkill -TERM -f landlordtenant.jar || true
+            pkill -TERM -f landlordtenant || true
             sleep 5
             echo 'Starting new process...'
             nohup java -jar /home/ubuntu/landlordtenant/landlordtenant.jar/target/landlordtenant-0.0.1-SNAPSHOT.jar > /dev/null 2>&1 &
