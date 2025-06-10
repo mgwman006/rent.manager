@@ -43,3 +43,4 @@ jobs:
             pkill -f landlordtenant.jar || true
             echo "Starting new process..."
             nohup java -jar /home/ubuntu/landlordtenant/landlordtenant.jar > /dev/null 2>&1 &
+            exit 0
