@@ -50,7 +50,6 @@ jobs:
             set -x
             echo 'Stopping existing process...'
             pkill -TERM -f landlordtenant || true
-            sleep 5
             echo 'Starting new process...'
             cd /home/ubuntu/landlordtenant
             nohup java -jar landlordtenant.jar/target/landlordtenant-0.0.1-SNAPSHOT.jar > /dev/null 2>&1 &
