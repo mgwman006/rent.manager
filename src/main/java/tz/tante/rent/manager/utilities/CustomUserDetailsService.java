@@ -1,10 +1,11 @@
-package tz.tante.rent.manager.services;
+package tz.tante.rent.manager.utilities;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import tz.tante.rent.manager.models.entities.Role;
 import tz.tante.rent.manager.models.entities.User;
 import tz.tante.rent.manager.repositories.UserRepository;
 
@@ -12,13 +13,11 @@ import tz.tante.rent.manager.repositories.UserRepository;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService
 {
-
   private final UserRepository userRepository;
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
   {
-
     User user = userRepository.findByUsername(username)
       .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
@@ -29,7 +28,7 @@ public class CustomUserDetailsService implements UserDetailsService
       .authorities(
         user.getRoles()
           .stream()
-          .map(role -> role.getName())
+          .map(Role::getName)
           .toArray(String[]::new)
       ).build();
   }

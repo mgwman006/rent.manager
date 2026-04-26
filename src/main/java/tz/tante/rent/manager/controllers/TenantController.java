@@ -1,4 +1,4 @@
-package tz.tante.rent.manager.controller;
+package tz.tante.rent.manager.controllers;
 
 import tz.tante.rent.manager.services.TenantService;
 import org.springframework.beans.factory.annotation.Autowired;

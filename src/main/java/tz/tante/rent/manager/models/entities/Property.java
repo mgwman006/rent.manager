@@ -23,8 +23,6 @@ public class Property {
   @Column(nullable = false)
   private String name;
 
-  private String area;
-
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
   private PropertyType type;
@@ -57,9 +55,9 @@ public class Property {
   @Embedded
   private Address address;
 
-  @Column(precision = 10, scale = 7)
+  @Column(nullable = false)
   private Double latitude;
 
-  @Column(precision = 10, scale = 7)
+  @Column(nullable = false)
   private Double longitude;
 }

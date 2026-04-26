@@ -1,4 +1,4 @@
-package tz.tante.rent.manager.controller;
+package tz.tante.rent.manager.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
