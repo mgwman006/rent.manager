@@ -11,4 +11,7 @@ import java.util.Optional;
 public interface LandlordRepository extends JpaRepository<Landlord,Long>
 {
 
+  boolean existsByPhoneNumber(String phoneNumber);
+  boolean existsByEmail(String email);
+
 }

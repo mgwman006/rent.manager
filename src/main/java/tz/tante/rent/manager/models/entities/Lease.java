@@ -15,13 +15,8 @@ import java.util.List;
 @Setter
 @Entity(name = "leases")
 @Table(name = "leases")
-public class Lease
+public class Lease extends BaseEntity
 {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
   private LocalDate startDate;
 
   private LocalDate endDate;

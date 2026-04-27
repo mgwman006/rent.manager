@@ -1,4 +1,4 @@
-package tz.tante.rent.manager.models.dtos.Requests.Tenants;
+package tz.tante.rent.manager.models.dtos.requests.Tenants;
 
 public record TenantRequestDto(
         String firstName,

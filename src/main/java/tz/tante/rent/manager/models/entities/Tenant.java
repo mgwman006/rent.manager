@@ -12,12 +12,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "tenants")
-public class Tenant {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class Tenant extends BaseEntity
+{
     @Column(nullable = false)
     private String firstName;
 

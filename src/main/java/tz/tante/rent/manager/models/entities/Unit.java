@@ -13,12 +13,8 @@ import java.util.List;
 @Setter
 @Entity(name = "units")
 @Table(name = "units")
-public class Unit
+public class Unit extends BaseEntity
 {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
   private String unitNumber;
 
   private BigDecimal rentAmount;

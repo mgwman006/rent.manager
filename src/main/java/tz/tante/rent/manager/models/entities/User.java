@@ -2,21 +2,18 @@ package tz.tante.rent.manager.models.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
 @Table(name = "users")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class User extends BaseEntity
+{
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -33,5 +30,20 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    private LocalDateTime createdAt;
+    @OneToOne(mappedBy = "user")
+    private Landlord landlordProfile;
+
+    @OneToOne(mappedBy = "user")
+    private Tenant tenantProfile;
+
+    public User(String username, String password)
+    {
+        this.username = username;
+        this.password = password;
+    }
+
+    public void addRole(Role role)
+    {
+        this.roles.add(role);
+    }
 }

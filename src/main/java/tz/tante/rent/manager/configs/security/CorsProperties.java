@@ -1,4 +1,4 @@
-package tz.tante.rent.manager.utilities;
+package tz.tante.rent.manager.configs.security;
 
 import lombok.Getter;
 import lombok.Setter;

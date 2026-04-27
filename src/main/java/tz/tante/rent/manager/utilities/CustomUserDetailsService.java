@@ -1,6 +1,7 @@
 package tz.tante.rent.manager.utilities;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
   {
     User user = userRepository.findByUsername(username)
-      .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+      .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
     return org.springframework.security.core.userdetails.User
       .withUsername(user.getUsername())
@@ -28,8 +29,8 @@ public class CustomUserDetailsService implements UserDetailsService
       .authorities(
         user.getRoles()
           .stream()
-          .map(Role::getName)
-          .toArray(String[]::new)
+          .map(role -> new SimpleGrantedAuthority(role.getName()))
+          .toList()
       ).build();
   }
 }

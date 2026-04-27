@@ -14,12 +14,8 @@ import java.util.UUID;
 @Setter
 @Entity(name = "payments")
 @Table(name = "payments")
-public class Payment {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
+public class Payment extends BaseEntity
+{
   @Column(nullable = false)
   private String referenceId = UUID.randomUUID().toString();
 

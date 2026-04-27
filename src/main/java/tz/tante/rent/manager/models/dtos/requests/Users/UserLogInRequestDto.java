@@ -1,4 +1,4 @@
-package tz.tante.rent.manager.models.dtos.Requests.Users;
+package tz.tante.rent.manager.models.dtos.requests.Users;
 
 public record UserLogInRequestDto(
         String email,
