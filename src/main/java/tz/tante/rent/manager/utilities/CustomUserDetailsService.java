@@ -7,10 +7,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import tz.tante.rent.manager.models.entities.Account;
-import tz.tante.rent.manager.models.entities.Role;
-import tz.tante.rent.manager.models.entities.User;
 import tz.tante.rent.manager.repositories.AccountRepository;
-import tz.tante.rent.manager.repositories.UserRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -25,13 +22,13 @@ public class CustomUserDetailsService implements UserDetailsService
       .orElseThrow(() -> new UsernameNotFoundException("Account with phoneNumber: " + phoneNumber+" does not exist"));
 
     return org.springframework.security.core.userdetails.User
-      .withUsername(user.getUsername())
-      .password(user.getPassword())
-      .disabled(!user.isEnabled())
+      .withUsername(account.getPhoneNumber())
+      .password(account.getPassword())
+      .disabled(!account.isEnabled())
       .authorities(
-        user.getRoles()
+        account.getAuthorityRoles()
           .stream()
-          .map(role -> new SimpleGrantedAuthority(role.getName()))
+          .map(authorityRole -> new SimpleGrantedAuthority(authorityRole.getName().name()))
           .toList()
       ).build();
   }

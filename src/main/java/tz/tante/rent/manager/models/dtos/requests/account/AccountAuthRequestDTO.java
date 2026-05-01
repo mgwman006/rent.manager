@@ -6,17 +6,17 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Payload to Authenticate account")
-public record AccountAuthDto(
-  @Schema(example = "+27821234567")
+public record AccountAuthRequestDTO(
+  @Schema(example = "+255612627337")
   @NotBlank(message = "Phone number is required")
   @Pattern(
-    regexp = "^\\+?[0-9]{10,15}$",
-    message = "Invalid phone number"
+    regexp = "^(\\+255|255|0)([678])\\d{8}$",
+    message = "Invalid Tanzanian phone number"
   )
   String phoneNumber,
 
-  @Schema(example = "123456")
+  @Schema(example = "1234")
   @NotBlank(message = "Password is required")
-  @Size(min = 6, message = "Password must be at least 6 characters")
+  @Size(min = 4, message = "Password must be at least 4 characters")
   String passWord
 ){ }

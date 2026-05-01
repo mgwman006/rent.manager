@@ -27,5 +27,5 @@ public class RentalProfile extends BaseEntity
   private Set<Unit> units = new HashSet<>();
 
   @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY)
-  private Set<RentalProfileMembership> memberships = new HashSet<>();
+  private Set<Membership> memberships = new HashSet<>();
 }

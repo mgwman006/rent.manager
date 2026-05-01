@@ -2,13 +2,16 @@ package tz.tante.rent.manager.controllers;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
+import tz.tante.rent.manager.models.dtos.requests.account.AccountAuthRequestDTO;
 import tz.tante.rent.manager.models.dtos.requests.account.AccountCreateDto;
 import tz.tante.rent.manager.models.dtos.responses.AccountDetailsDto;
+import tz.tante.rent.manager.models.dtos.responses.AccountAuthResponseDTO;
 import tz.tante.rent.manager.services.AuthService;
 
 
@@ -21,11 +24,21 @@ public class AuthController
 
   @GetMapping("/phone")
   public ResponseEntity<ApiResponse<AccountDetailsDto>> getAccountByPhoneNumber(
-    @NotBlank @RequestParam String phoneNumber)
+    @RequestParam
+    @NotBlank(message = "Phone number is required")
+    @Pattern(
+      regexp = "^(\\+255|255|0)([678])\\d{8}$",
+      message = "Invalid Tanzanian phone number"
+    )
+    String phoneNumber
+  )
   {
-    AccountDetailsDto accountDetailsDto = authService.findAccountByPhoneNumber(phoneNumber);
-    return ResponseEntity.status(HttpStatus.OK)
-      .body(ApiResponse.success(accountDetailsDto,HttpStatus.OK.value()));
+    return ResponseEntity.ok(
+      ApiResponse.success(
+        authService.findAccountByPhoneNumber(phoneNumber),
+        HttpStatus.OK.value()
+      )
+    );
   }
 
   @PostMapping("/account")
@@ -35,5 +48,14 @@ public class AuthController
     AccountDetailsDto accountDetailsDto = authService.createAccount(accountCreateDto);
     return ResponseEntity.status(HttpStatus.CREATED)
       .body(ApiResponse.success(accountDetailsDto,HttpStatus.CREATED.value()));
+  }
+
+  @PostMapping()
+  public ResponseEntity<ApiResponse<AccountAuthResponseDTO>> authenticate(
+    @Valid @RequestBody AccountAuthRequestDTO request)
+  {
+    AccountAuthResponseDTO response = authService.authenticate(request);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 }

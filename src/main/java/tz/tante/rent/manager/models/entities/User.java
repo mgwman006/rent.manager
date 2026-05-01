@@ -28,7 +28,7 @@ public class User extends BaseEntity
     private Tenant tenantProfile;
 
     @OneToMany(mappedBy = "user")
-    Set<RentalProfileMembership> rentalProfileMemberships = new HashSet<>();
+    Set<Membership> memberships = new HashSet<>();
 
     public User(String firstName, String lastName)
     {

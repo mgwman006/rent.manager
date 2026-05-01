@@ -7,8 +7,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LandlordRepository extends JpaRepository<RentalProfile,Long>
 {
-
-  boolean existsByPhoneNumber(String phoneNumber);
-  boolean existsByEmail(String email);
-
 }

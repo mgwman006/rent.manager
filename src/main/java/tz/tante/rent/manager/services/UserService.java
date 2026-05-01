@@ -14,47 +14,21 @@ public class UserService {
 
   private final UserRepository userRepository;
 
-  public User getUserByUserName(String userName)
-  {
-    try
-    {
-      return userRepository.findByUsername(userName)
-        .orElseThrow( () -> new ResourceNotFoundException("User not found"));
-    }
-    catch (Exception exception)
-    {
-      throw new TanteException(exception.getMessage());
-    }
-  }
-
-
-//    public Result<JwtTokenDetails> logIn(String email, String passWord)
+//  public User getUserByUserName(String userName)
+//  {
+//    try
 //    {
-//        try
-//        {
-//            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, passWord));
-//            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-//            String token = jwtUtils.generateToken(
-//              userDetails.getUsername(),
-//              userDetails.getAuthorities()
-//                .stream()
-//                .map(GrantedAuthority::getAuthority)
-//                .collect(Collectors.toSet())
-//            );
-//
-//            return Result.success(
-//              "Login success",
-//              new JwtTokenDetails(
-//                userDetails.getUsername(),
-//                token
-//              ));
-
-//        }
-//        catch (BadCredentialsException e)
-//        {
-//            return Result.failure(e.getMessage());
-//        }
+//      return userRepository.findByUsername(userName)
+//        .orElseThrow( () -> new ResourceNotFoundException("User not found"));
 //    }
+//    catch (Exception exception)
+//    {
+//      throw new TanteException(exception.getMessage());
+//    }
+//  }
+
+
+
 
 //    public UserResponseDto registerUser(NewUserRequestDto userRequest) {
 //

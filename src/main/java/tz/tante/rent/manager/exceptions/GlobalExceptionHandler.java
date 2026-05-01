@@ -15,6 +15,13 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
 
+  @ExceptionHandler(AuthException.class)
+  public ResponseEntity<ApiResponse<Object>> handleAuthentication(AuthException exception)
+  {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+      .body(ApiResponse.failure(Constant.UNAUTHORIZED_MESSAGE, exception.getMessage(),HttpStatus.UNAUTHORIZED.value()));
+  }
+
   @ExceptionHandler(InitializationException.class)
   public ResponseEntity<ApiResponse<Object>> handleInitializationException(InitializationException exception)
   {

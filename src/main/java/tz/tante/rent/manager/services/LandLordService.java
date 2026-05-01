@@ -29,51 +29,51 @@ public class LandLordService
   private final PasswordEncoder passwordEncoder;
 
 
-  @Transactional
-  public LandLordResponseDto registerLandLord(LandLordRequestDto requestDto)
-  {
-    try
-    {
-      if (landlordRepository.existsByPhoneNumber(requestDto.phoneNumber()))
-      {
-        throw new ResourceExistException("RentalProfile with phone number: " + requestDto.phoneNumber() + " already exists");
-      }
-
-      if (landlordRepository.existsByEmail(requestDto.email()))
-      {
-        throw new ResourceExistException("RentalProfile with email: " + requestDto.email() + " already exists");
-      }
-
-
-      RentalProfile newLandLord = new RentalProfile();
-
-      User user = userRepository.findByUsername(requestDto.phoneNumber())
-        .orElse(null);
-
-      if (user == null)
-      {
-        String encodedPassword = passwordEncoder.encode(requestDto.passWord());
-
-        user = new User(requestDto.phoneNumber(), encodedPassword);
-        Role landlordRole = roleService.getRoleByName(RoleName.ROLE_LANDLORD.toString());
-        user.addRole(landlordRole);
-
-        userRepository.save(user);
-      }
-
-      newLandLord.setUser(user);
-      user.setRentalProfileProfile(newLandLord);
-
-      newLandLord = landlordRepository.save(newLandLord);
-
-      return null;
-    }
-    catch (Exception exception)
-    {
-      throw new TanteException(exception.getMessage());
-    }
-
-  }
+//  @Transactional
+//  public LandLordResponseDto registerLandLord(LandLordRequestDto requestDto)
+//  {
+//    try
+//    {
+//      if (landlordRepository.existsByPhoneNumber(requestDto.phoneNumber()))
+//      {
+//        throw new ResourceExistException("RentalProfile with phone number: " + requestDto.phoneNumber() + " already exists");
+//      }
+//
+//      if (landlordRepository.existsByEmail(requestDto.email()))
+//      {
+//        throw new ResourceExistException("RentalProfile with email: " + requestDto.email() + " already exists");
+//      }
+//
+//
+//      RentalProfile newLandLord = new RentalProfile();
+//
+//      User user = userRepository.findByUsername(requestDto.phoneNumber())
+//        .orElse(null);
+//
+//      if (user == null)
+//      {
+//        String encodedPassword = passwordEncoder.encode(requestDto.passWord());
+//
+//        user = new User(requestDto.phoneNumber(), encodedPassword);
+//        Role landlordRole = roleService.getRoleByName(RoleName.ROLE_LANDLORD.toString());
+//        user.addRole(landlordRole);
+//
+//        userRepository.save(user);
+//      }
+//
+//      newLandLord.setUser(user);
+//      user.setRentalProfileProfile(newLandLord);
+//
+//      newLandLord = landlordRepository.save(newLandLord);
+//
+//      return null;
+//    }
+//    catch (Exception exception)
+//    {
+//      throw new TanteException(exception.getMessage());
+//    }
+//
+//  }
 
 
 }

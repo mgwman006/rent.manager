@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "rental_profile_memberships")
-public class RentalProfileMembership extends BaseEntity
+public class Membership extends BaseEntity
 {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
