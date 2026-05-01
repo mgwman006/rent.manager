@@ -1,9 +1,10 @@
 package tz.tante.rent.manager.enums;
 
-public enum RoleName {
-  ROLE_ADMIN,
-  ROLE_LANDLORD,
-  ROLE_TENANT,
+public enum RoleName
+{
   ROLE_MANAGER,
-  ROLE_AGENT
+  ROLE_OWNER,
+  ROLE_ADMIN,
+  ROLE_ACCOUNTANT,
+  ROLE_VIEWER
 }

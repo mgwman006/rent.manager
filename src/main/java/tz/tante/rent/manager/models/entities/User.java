@@ -14,36 +14,26 @@ import java.util.Set;
 @Table(name = "users")
 public class User extends BaseEntity
 {
-    @Column(nullable = false, unique = true)
-    private String username;
+    @Column(nullable = false)
+    private String firstName;
 
     @Column(nullable = false)
-    private String password;
+    private String lastName;
 
-    private boolean enabled = true;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-      name = "user_roles",
-      joinColumns = @JoinColumn(name = "user_id"),
-      inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
-
-    @OneToOne(mappedBy = "user")
-    private Landlord landlordProfile;
+    @OneToOne
+    @JoinColumn(name = "account_id", unique = true)
+    private Account account;
 
     @OneToOne(mappedBy = "user")
     private Tenant tenantProfile;
 
-    public User(String username, String password)
+    @OneToMany(mappedBy = "user")
+    Set<RentalProfileMembership> rentalProfileMemberships = new HashSet<>();
+
+    public User(String firstName, String lastName)
     {
-        this.username = username;
-        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
-    public void addRole(Role role)
-    {
-        this.roles.add(role);
-    }
 }

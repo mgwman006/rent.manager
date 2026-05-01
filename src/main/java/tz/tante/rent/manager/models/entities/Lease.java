@@ -13,12 +13,14 @@ import java.util.List;
 
 @Getter
 @Setter
-@Entity(name = "leases")
+@Entity
 @Table(name = "leases")
 public class Lease extends BaseEntity
 {
+  @Column(nullable = false)
   private LocalDate startDate;
 
+  @Column(nullable = false)
   private LocalDate endDate;
 
   @Column(nullable = false, precision = 12, scale = 2)
@@ -35,6 +37,7 @@ public class Lease extends BaseEntity
 
   private BigDecimal paidDeposit;
 
+  @Column(nullable = false)
   private String currency;
 
   @Enumerated(EnumType.STRING)
@@ -60,6 +63,7 @@ public class Lease extends BaseEntity
       paidDeposit.compareTo(requiredDeposit) >= 0;
   }
   public boolean isActive() {
-    return status == LeaseStatus.ACTIVE;
+    return status == LeaseStatus.ACTIVE &&
+      LocalDate.now().isBefore(endDate);
   }
 }
