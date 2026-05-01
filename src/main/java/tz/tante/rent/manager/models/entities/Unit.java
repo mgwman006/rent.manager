@@ -30,9 +30,9 @@ public class Unit extends BaseEntity
   private Property property;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "landlord_id")
-  private Landlord landlord;
+  @JoinColumn(name = "rental_profile_id")
+  private RentalProfile rentalProfile;
 
-  @OneToMany(mappedBy = "unit")
+  @OneToMany(mappedBy = "unit", fetch = FetchType.LAZY)
   private List<Lease> leases = new ArrayList<>();
 }

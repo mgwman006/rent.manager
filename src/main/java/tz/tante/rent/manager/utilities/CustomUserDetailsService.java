@@ -6,21 +6,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import tz.tante.rent.manager.models.entities.Account;
 import tz.tante.rent.manager.models.entities.Role;
 import tz.tante.rent.manager.models.entities.User;
+import tz.tante.rent.manager.repositories.AccountRepository;
 import tz.tante.rent.manager.repositories.UserRepository;
 
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService
 {
-  private final UserRepository userRepository;
+  private final AccountRepository accountRepository;
 
   @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
+  public UserDetails loadUserByUsername(String phoneNumber) throws UsernameNotFoundException
   {
-    User user = userRepository.findByUsername(username)
-      .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    Account account = accountRepository.findByPhoneNumber(phoneNumber)
+      .orElseThrow(() -> new UsernameNotFoundException("Account with phoneNumber: " + phoneNumber+" does not exist"));
 
     return org.springframework.security.core.userdetails.User
       .withUsername(user.getUsername())

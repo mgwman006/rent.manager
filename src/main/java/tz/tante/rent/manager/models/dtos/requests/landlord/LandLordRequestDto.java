@@ -3,7 +3,7 @@ package tz.tante.rent.manager.models.dtos.requests.landlord;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
-@Schema(description = "Landlord request payload")
+@Schema(description = "RentalProfile request payload")
 public record LandLordRequestDto(
 
   @Schema(example = "John")

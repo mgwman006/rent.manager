@@ -10,7 +10,7 @@ import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.landlord.LandLordRequestDto;
 import tz.tante.rent.manager.models.dtos.responses.LandLordResponseDto;
-import tz.tante.rent.manager.models.entities.Landlord;
+import tz.tante.rent.manager.models.entities.RentalProfile;
 import tz.tante.rent.manager.models.entities.Role;
 import tz.tante.rent.manager.models.entities.User;
 import org.springframework.stereotype.Service;
@@ -36,21 +36,16 @@ public class LandLordService
     {
       if (landlordRepository.existsByPhoneNumber(requestDto.phoneNumber()))
       {
-        throw new ResourceExistException("Landlord with phone number: " + requestDto.phoneNumber() + " already exists");
+        throw new ResourceExistException("RentalProfile with phone number: " + requestDto.phoneNumber() + " already exists");
       }
 
       if (landlordRepository.existsByEmail(requestDto.email()))
       {
-        throw new ResourceExistException("Landlord with email: " + requestDto.email() + " already exists");
+        throw new ResourceExistException("RentalProfile with email: " + requestDto.email() + " already exists");
       }
 
 
-      Landlord newLandLord = new Landlord(
-        requestDto.firstName(),
-        requestDto.lastName(),
-        requestDto.phoneNumber(),
-        requestDto.email()
-      );
+      RentalProfile newLandLord = new RentalProfile();
 
       User user = userRepository.findByUsername(requestDto.phoneNumber())
         .orElse(null);
@@ -67,17 +62,11 @@ public class LandLordService
       }
 
       newLandLord.setUser(user);
-      user.setLandlordProfile(newLandLord);
+      user.setRentalProfileProfile(newLandLord);
 
       newLandLord = landlordRepository.save(newLandLord);
 
-      return new LandLordResponseDto(
-        newLandLord.getId(),
-        newLandLord.getFirstName(),
-        newLandLord.getLastName(),
-        newLandLord.getPhoneNumber(),
-        newLandLord.getEmail()
-      );
+      return null;
     }
     catch (Exception exception)
     {

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Entity(name = "payments")
+@Entity
 @Table(name = "payments")
 public class Payment extends BaseEntity
 {
