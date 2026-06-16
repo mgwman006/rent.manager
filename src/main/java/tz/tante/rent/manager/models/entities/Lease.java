@@ -43,9 +43,8 @@ public class Lease extends BaseEntity
   @Enumerated(EnumType.STRING)
   private LeaseStatus status;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "unit_id", nullable = false)
-  private Unit unit;
+
+  private Long unitId;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "tenant_id", nullable = false)

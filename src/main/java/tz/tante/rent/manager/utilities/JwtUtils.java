@@ -9,23 +9,31 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import com.nimbusds.jwt.SignedJWT;
+import tz.tante.rent.manager.exceptions.AuthException;
+
 
 @Component
 public class JwtUtils {
 
-  private final Key key = Keys.hmacShaKeyFor(Constant.jwtSecret.getBytes(StandardCharsets.UTF_8));
+  private static final Key key = Keys.hmacShaKeyFor(Constant.jwtSecret.getBytes(StandardCharsets.UTF_8));
 
-  public String generateToken(String username, Set<String> roles) {
-    return Jwts.builder()
-      .setSubject(username)
-      .claim("roles", roles)
-      .setIssuedAt(new Date())
-      .setExpiration(new Date(System.currentTimeMillis() + Constant.jwtExpirationMs))
-      .signWith(key)
-      .compact();
+  public static boolean isValidIssuer(String token)
+  {
+    try
+    {
+      String EXPECTED_ISSUER = "tz.tante.auth";
+      SignedJWT jwt = SignedJWT.parse(token);
+      String issuer = jwt.getJWTClaimsSet().getIssuer();
+      return EXPECTED_ISSUER.equals(issuer);
+    }
+    catch (Exception exception)
+    {
+      throw new AuthException(exception.getMessage());
+    }
   }
 
-  private Claims getClaims(String token) {
+  public static Claims getClaims(String token) {
     return Jwts.parserBuilder()
       .setSigningKey(key)
       .build()

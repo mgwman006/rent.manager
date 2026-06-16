@@ -12,19 +12,9 @@ import lombok.Setter;
 @Table(name = "rental_profile_memberships")
 public class Membership extends BaseEntity
 {
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+  private Long userId;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "rental_profile_id", nullable = false)
   private RentalProfile rentalProfile;
-
-  @ManyToMany(fetch = FetchType.EAGER)
-  @JoinTable(
-    name = "rental_profile_member_roles",
-    joinColumns = @JoinColumn(name = "membership_id"),
-    inverseJoinColumns = @JoinColumn(name = "role_id")
-  )
-  private Set<Role> roles = new HashSet<>();
 }
