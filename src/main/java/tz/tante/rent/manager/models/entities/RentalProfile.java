@@ -23,7 +23,7 @@ public class RentalProfile extends BaseEntity
   @Column(nullable = false)
   private RentalProfileType type;
 
-  @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   private Set<Membership> memberships = new HashSet<>();
 
   public void addMembership(Membership membership)

@@ -19,7 +19,7 @@ import tz.tante.rent.manager.services.RentalProfileService;
 @AllArgsConstructor
 @Setter
 @Getter
-@RequestMapping("v1/rentalprofile")
+@RequestMapping("v1/rentalprofiles")
 public class RentalProfileController
 {
   private final RentalProfileService rentalProfileService;
