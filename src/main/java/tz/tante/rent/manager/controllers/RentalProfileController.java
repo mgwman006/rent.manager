@@ -1,6 +1,7 @@
 package tz.tante.rent.manager.controllers;
 
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +26,7 @@ public class RentalProfileController
   private final RentalProfileService rentalProfileService;
 
   @PostMapping
-  public ResponseEntity<ApiResponse<RentalProfileDetailsDTO>> createRentalProfile(@RequestBody CreateRentalProfileDTO request)
+  public ResponseEntity<ApiResponse<RentalProfileDetailsDTO>> createRentalProfile(@Valid @RequestBody CreateRentalProfileDTO request)
   {
     RentalProfileDetailsDTO rentalProfileDetailsDTO = rentalProfileService.createRentalProfile(request);
     return ResponseEntity.status(HttpStatus.CREATED)
