@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 
 
+import tz.tante.rent.manager.enums.MembershipRole;
+import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.rentalprofiles.CreateRentalProfileDTO;
 import tz.tante.rent.manager.models.dtos.responses.MembershipDetailsDTO;
@@ -16,6 +18,7 @@ import tz.tante.rent.manager.models.dtos.responses.rentalprofiles.RentalProfileD
 import tz.tante.rent.manager.models.entities.Membership;
 import tz.tante.rent.manager.models.entities.RentReceivingAccount;
 import tz.tante.rent.manager.models.entities.RentalProfile;
+import tz.tante.rent.manager.repositories.MembershipRepository;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
 
 
@@ -25,6 +28,7 @@ import tz.tante.rent.manager.repositories.RentalProfileRepository;
 @Getter
 public class RentalProfileService
 {
+  private final MembershipRepository membershipRepository;
   private final RentalProfileRepository rentalProfileRepository;
 
   @Transactional
@@ -32,25 +36,37 @@ public class RentalProfileService
   {
     try
     {
-      RentalProfile rentalProfile = new RentalProfile();
-      rentalProfile.setName(createRentalProfileDTO.name());
-      rentalProfile.setBusinessEmail(createRentalProfileDTO.businessEmail());
-      rentalProfile.setType(createRentalProfileDTO.type());
-
-      rentalProfile  = rentalProfileRepository.save(rentalProfile);
-
-      Membership membership = new Membership();
-      membership.setUserId(createRentalProfileDTO.adminUserId());
-      rentalProfile.addMembership(membership);
-
-      rentalProfile = rentalProfileRepository.save(rentalProfile);
-
-      if (createRentalProfileDTO.rentReceivingAccount() != null)
+      if (membershipRepository.isExistByUserIdAndMembershipRole(createRentalProfileDTO.adminUserId(), MembershipRole.OWNER))
       {
-        RentReceivingAccount rentReceivingAccount = getRentReceivingAccount(createRentalProfileDTO);
-        rentalProfile.addRentReceivingAccount(rentReceivingAccount);
-        rentalProfile = rentalProfileRepository.save(rentalProfile);
+        throw new ResourceExistException("User with ID " + createRentalProfileDTO.adminUserId() + " already owns a rental profile.");
       }
+
+      RentalProfile rentalProfile = rentalProfileRepository.findByName(createRentalProfileDTO.name());
+      if (rentalProfile == null)
+      {
+        rentalProfile = new RentalProfile();
+        rentalProfile.setName(createRentalProfileDTO.name());
+        rentalProfile.setBusinessEmail(createRentalProfileDTO.businessEmail());
+        rentalProfile.setType(createRentalProfileDTO.type());
+
+        rentalProfile  = rentalProfileRepository.save(rentalProfile);
+
+        Membership membership = new Membership();
+        membership.setUserId(createRentalProfileDTO.adminUserId());
+        rentalProfile.addMembership(membership);
+        membership.setMembershipRole(MembershipRole.OWNER);
+
+        rentalProfile = rentalProfileRepository.save(rentalProfile);
+
+        if (createRentalProfileDTO.rentReceivingAccount() != null)
+        {
+          RentReceivingAccount rentReceivingAccount = getRentReceivingAccount(createRentalProfileDTO);
+          rentalProfile.addRentReceivingAccount(rentReceivingAccount);
+          rentalProfile = rentalProfileRepository.save(rentalProfile);
+        }
+      }
+
+
 
       RentReceivingAccount rentReceivingAccount = null;
       if (rentalProfile.getRentReceivingAccounts() != null)

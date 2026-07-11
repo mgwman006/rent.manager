@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import tz.tante.rent.manager.enums.MembershipRole;
 
 @Getter
 @Setter
@@ -17,4 +18,7 @@ public class Membership extends BaseEntity
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "rental_profile_id", nullable = false)
   private RentalProfile rentalProfile;
+
+  @Enumerated(EnumType.STRING)
+  private MembershipRole membershipRole;
 }

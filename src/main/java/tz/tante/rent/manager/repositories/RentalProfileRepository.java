@@ -5,4 +5,5 @@ import tz.tante.rent.manager.models.entities.RentalProfile;
 
 public interface RentalProfileRepository extends JpaRepository<RentalProfile, Long>
 {
+  RentalProfile findByName(String name);
 }
