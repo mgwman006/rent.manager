@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import tz.tante.rent.manager.enums.MembershipRole;
 import tz.tante.rent.manager.exceptions.ResourceExistException;
+import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.rentalprofiles.CreateRentalProfileDTO;
 import tz.tante.rent.manager.models.dtos.responses.MembershipDetailsDTO;
@@ -66,48 +67,19 @@ public class RentalProfileService
         }
       }
 
-
-
-      RentReceivingAccount rentReceivingAccount = null;
-      if (rentalProfile.getRentReceivingAccounts() != null)
-      {
-        rentReceivingAccount = rentalProfile.getRentReceivingAccounts()
-          .stream()
-          .filter(RentReceivingAccount::isDefault)
-          .findFirst()
-          .orElse(null);
-      }
-
-      RentalProfile finalRentalProfile = rentalProfile;
-
-      return new RentalProfileDetailsDTO(
-        rentalProfile.getId(),
-        rentalProfile.getName(),
-        rentalProfile.getBusinessEmail(),
-        rentalProfile.getType(),
-        rentalProfile.getMemberships() == null ? new ArrayList<>() :
-          rentalProfile.getMemberships()
-            .stream()
-            .map(m -> new MembershipDetailsDTO(
-                m.getId(),
-                m.getUserId(),
-                finalRentalProfile.getId(),
-                finalRentalProfile.getName()
-          )).toList(),
-        rentReceivingAccount == null ? null : new RentReceivingAccountDetailsDTO(
-          rentReceivingAccount.getId(),
-          rentReceivingAccount.getAccountNumber(),
-          rentReceivingAccount.getBankName(),
-          rentReceivingAccount.getMobileMoneyNumber(),
-          rentReceivingAccount.getMobileMoneyProvider(),
-          rentReceivingAccount.getPaymentMethod(),
-          rentReceivingAccount.isDefault())
-      );
+      return getRentalProfileDetailsDTO(rentalProfile);
     }
     catch (Exception exception)
     {
       throw new TanteException(exception.getMessage());
     }
+  }
+
+  public RentalProfileDetailsDTO getRentalProfile(Long rentalProfileId)
+  {
+    RentalProfile rentalProfile = rentalProfileRepository.findById(rentalProfileId)
+      .orElseThrow(() -> new ResourceNotFoundException("Rental profile with ID " + rentalProfileId + " not found."));
+    return getRentalProfileDetailsDTO(rentalProfile);
   }
 
   private static RentReceivingAccount getRentReceivingAccount(CreateRentalProfileDTO createRentalProfileDTO)
@@ -120,5 +92,42 @@ public class RentalProfileService
     rentReceivingAccount.setDefault(createRentalProfileDTO.rentReceivingAccount().isDefault());
     rentReceivingAccount.setPaymentMethod(createRentalProfileDTO.rentReceivingAccount().paymentMethod());
     return rentReceivingAccount;
+  }
+
+  private static RentalProfileDetailsDTO getRentalProfileDetailsDTO(RentalProfile rentalProfile)
+  {
+    RentReceivingAccount rentReceivingAccount = null;
+    if (rentalProfile.getRentReceivingAccounts() != null)
+    {
+      rentReceivingAccount = rentalProfile.getRentReceivingAccounts()
+        .stream()
+        .filter(RentReceivingAccount::isDefault)
+        .findFirst()
+        .orElse(null);
+    }
+
+    return new RentalProfileDetailsDTO(
+      rentalProfile.getId(),
+      rentalProfile.getName(),
+      rentalProfile.getBusinessEmail(),
+      rentalProfile.getType(),
+      rentalProfile.getMemberships() == null ? new ArrayList<>() :
+        rentalProfile.getMemberships()
+          .stream()
+          .map(m -> new MembershipDetailsDTO(
+            m.getId(),
+            m.getUserId(),
+            rentalProfile.getId(),
+            rentalProfile.getName()
+          )).toList(),
+      rentReceivingAccount == null ? null : new RentReceivingAccountDetailsDTO(
+        rentReceivingAccount.getId(),
+        rentReceivingAccount.getAccountNumber(),
+        rentReceivingAccount.getBankName(),
+        rentReceivingAccount.getMobileMoneyNumber(),
+        rentReceivingAccount.getMobileMoneyProvider(),
+        rentReceivingAccount.getPaymentMethod(),
+        rentReceivingAccount.isDefault())
+    );
   }
 }
