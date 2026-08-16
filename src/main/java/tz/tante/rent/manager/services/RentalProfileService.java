@@ -37,9 +37,9 @@ public class RentalProfileService
   {
     try
     {
-      if (membershipRepository.isExistByUserIdAndMembershipRole(createRentalProfileDTO.adminUserId(), MembershipRole.OWNER))
+      if (membershipRepository.isExistByPhoneNumberAndMembershipRole(createRentalProfileDTO.phoneNumber(), MembershipRole.OWNER))
       {
-        throw new ResourceExistException("User with ID " + createRentalProfileDTO.adminUserId() + " already owns a rental profile.");
+        throw new ResourceExistException("User with Phone Number " + createRentalProfileDTO.phoneNumber() + " already owns a rental profile.");
       }
 
       RentalProfile rentalProfile = rentalProfileRepository.findByName(createRentalProfileDTO.name());
@@ -54,6 +54,7 @@ public class RentalProfileService
 
         Membership membership = new Membership();
         membership.setUserId(createRentalProfileDTO.adminUserId());
+        membership.setPhoneNumber(createRentalProfileDTO.phoneNumber());
         rentalProfile.addMembership(membership);
         membership.setMembershipRole(MembershipRole.OWNER);
 

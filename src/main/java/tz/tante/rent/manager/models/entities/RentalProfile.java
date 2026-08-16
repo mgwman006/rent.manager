@@ -29,6 +29,9 @@ public class RentalProfile extends BaseEntity
   @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   private Set<RentReceivingAccount> rentReceivingAccounts = new HashSet<>();
 
+  @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  private Set<Lease> leases = new HashSet<>();
+
   public void addMembership(Membership membership)
   {
     memberships.add(membership);
@@ -39,6 +42,12 @@ public class RentalProfile extends BaseEntity
   {
     rentReceivingAccounts.add(rentReceivingAccount);
     rentReceivingAccount.setRentalProfile(this);
+  }
+
+  public void addLease(Lease lease)
+  {
+    leases.add(lease);
+    lease.setRentalProfile(this);
   }
 
 }

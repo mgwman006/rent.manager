@@ -44,4 +44,19 @@ public class MembershipService
       membership.getRentalProfile() != null ? membership.getRentalProfile().getName() : null
     );
   }
+
+  public List<MembershipDetailsDTO> getMembershipsByPhoneNumber(String phoneNumber)
+  {
+    try
+    {
+      return membershipRepository.findByPhoneNumber(phoneNumber)
+        .stream()
+        .map(this::mapToMembershipDetailsDTO)
+        .toList();
+    }
+    catch (Exception exception)
+    {
+      throw new TanteException(exception.getMessage());
+    }
+  }
 }

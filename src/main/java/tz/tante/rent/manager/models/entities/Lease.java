@@ -8,8 +8,11 @@ import tz.tante.rent.manager.enums.RentPeriod;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,6 +20,9 @@ import java.util.List;
 @Table(name = "leases")
 public class Lease extends BaseEntity
 {
+  @Column(nullable = false, unique = true, updatable = false, length = 50)
+  private String referenceNumber;
+
   @Column(nullable = false)
   private LocalDate startDate;
 
@@ -27,42 +33,62 @@ public class Lease extends BaseEntity
   private BigDecimal rentAmount;
 
   @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
   private RentPeriod rentPeriod;
-
-  // =========================
-  // DEPOSIT RULES
-  // =========================
-  @Column(nullable = false, precision = 12, scale = 2)
-  private BigDecimal requiredDeposit;
-
-  private BigDecimal paidDeposit;
 
   @Column(nullable = false)
   private String currency;
 
   @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
   private LeaseStatus status;
-
 
   private Long unitId;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "tenant_id", nullable = false)
+  @JoinColumn(name = "tenant_id")
   private Tenant tenant;
 
-  @OneToMany(mappedBy = "lease", fetch = FetchType.LAZY)
+  @ManyToOne
+  @JoinColumn(name = "rental_profile_id")
+  RentalProfile rentalProfile;
+
+  @OneToMany(
+    mappedBy = "lease",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true
+  )
   private List<Payment> payments = new ArrayList<>();
 
-  // =========================
-  // HELPER METHODS
-  // =========================
+  @OneToMany(
+    mappedBy = "lease",
+    cascade = CascadeType.ALL,
+    fetch = FetchType.LAZY
+  )
+  private Set<TenantInvitation> tenantInvitations = new HashSet<>();
 
-  public boolean isDepositFullyPaid() {
-    return paidDeposit != null &&
-      paidDeposit.compareTo(requiredDeposit) >= 0;
+  public void addTenantInvitation(TenantInvitation invitation) {
+    tenantInvitations.add(invitation);
+    invitation.setLease(this);
   }
-  public boolean isActive() {
-    return status == LeaseStatus.ACTIVE &&
-      LocalDate.now().isBefore(endDate);
+
+  public boolean isActive()
+  {
+    LocalDate today = LocalDate.now();
+    return status == LeaseStatus.ACTIVE
+      && !today.isBefore(startDate)
+      && !today.isAfter(endDate);
+  }
+
+  public String generateReferenceNumber()
+  {
+    return this.referenceNumber = String.format(
+      "LS-RP%d-U%d-T%d-%s-%s",
+      rentalProfile.getId(),
+      unitId,
+      tenant.getId(),
+      startDate.format(DateTimeFormatter.BASIC_ISO_DATE),
+      endDate.format(DateTimeFormatter.BASIC_ISO_DATE)
+    );
   }
 }

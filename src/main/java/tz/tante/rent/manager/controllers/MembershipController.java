@@ -27,4 +27,12 @@ public class MembershipController
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(memberships, HttpStatus.OK.value()));
   }
+
+  @GetMapping("phone/{phoneNumber}")
+  public ResponseEntity<ApiResponse<List<MembershipDetailsDTO>>> getMembershipsByPhoneNumber(@PathVariable String phoneNumber)
+  {
+    List<MembershipDetailsDTO> memberships = membershipService.getMembershipsByPhoneNumber(phoneNumber);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(memberships, HttpStatus.OK.value()));
+  }
 }

@@ -19,4 +19,10 @@ public class Tenant extends BaseEntity
 
   @OneToMany(mappedBy = "tenant", fetch = FetchType.LAZY)
   private Set<Lease> leases = new HashSet<>();
+
+  public void addLease(Lease lease)
+  {
+    leases.add(lease);
+    lease.setTenant(this);
+  }
 }
