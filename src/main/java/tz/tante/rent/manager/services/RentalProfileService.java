@@ -5,21 +5,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
+
+import java.util.List;
+import java.util.Optional;
 
 
-import tz.tante.rent.manager.enums.MembershipRole;
 import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.rentalprofiles.CreateRentalProfileDTO;
-import tz.tante.rent.manager.models.dtos.responses.MembershipDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.RentReceivingAccountDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.rentalprofiles.RentalProfileDetailsDTO;
-import tz.tante.rent.manager.models.entities.Membership;
 import tz.tante.rent.manager.models.entities.RentReceivingAccount;
 import tz.tante.rent.manager.models.entities.RentalProfile;
-import tz.tante.rent.manager.repositories.MembershipRepository;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
 
 
@@ -29,7 +27,6 @@ import tz.tante.rent.manager.repositories.RentalProfileRepository;
 @Getter
 public class RentalProfileService
 {
-  private final MembershipRepository membershipRepository;
   private final RentalProfileRepository rentalProfileRepository;
 
   @Transactional
@@ -37,36 +34,20 @@ public class RentalProfileService
   {
     try
     {
-      if (membershipRepository.isExistByPhoneNumberAndMembershipRole(createRentalProfileDTO.phoneNumber(), MembershipRole.OWNER))
+      Optional<RentalProfile> rentalProfileOptional = rentalProfileRepository.findByPhoneNumber(createRentalProfileDTO.phoneNumber());
+      if (rentalProfileOptional.isPresent())
       {
-        throw new ResourceExistException("User with Phone Number " + createRentalProfileDTO.phoneNumber() + " already owns a rental profile.");
+        throw new ResourceExistException("Rental profile with phone number " + createRentalProfileDTO.phoneNumber() + " already exists.");
       }
 
-      RentalProfile rentalProfile = rentalProfileRepository.findByName(createRentalProfileDTO.name());
-      if (rentalProfile == null)
-      {
-        rentalProfile = new RentalProfile();
-        rentalProfile.setName(createRentalProfileDTO.name());
-        rentalProfile.setBusinessEmail(createRentalProfileDTO.businessEmail());
-        rentalProfile.setType(createRentalProfileDTO.type());
-
-        rentalProfile  = rentalProfileRepository.save(rentalProfile);
-
-        Membership membership = new Membership();
-        membership.setUserId(createRentalProfileDTO.adminUserId());
-        membership.setPhoneNumber(createRentalProfileDTO.phoneNumber());
-        rentalProfile.addMembership(membership);
-        membership.setMembershipRole(MembershipRole.OWNER);
-
-        rentalProfile = rentalProfileRepository.save(rentalProfile);
-
-        if (createRentalProfileDTO.rentReceivingAccount() != null)
-        {
-          RentReceivingAccount rentReceivingAccount = getRentReceivingAccount(createRentalProfileDTO);
-          rentalProfile.addRentReceivingAccount(rentReceivingAccount);
-          rentalProfile = rentalProfileRepository.save(rentalProfile);
-        }
-      }
+      RentalProfile rentalProfile = new RentalProfile();
+      rentalProfile.setUserId(createRentalProfileDTO.userId());
+      rentalProfile.setOrganizationId(createRentalProfileDTO.organizationId());
+      rentalProfile.setPhoneNumber(createRentalProfileDTO.phoneNumber());
+      rentalProfile.setBusinessEmail(createRentalProfileDTO.businessEmail());
+      rentalProfile.setName(createRentalProfileDTO.name());
+      rentalProfile.setType(createRentalProfileDTO.type());
+      rentalProfile  = rentalProfileRepository.save(rentalProfile);
 
       return getRentalProfileDetailsDTO(rentalProfile);
     }
@@ -83,16 +64,12 @@ public class RentalProfileService
     return getRentalProfileDetailsDTO(rentalProfile);
   }
 
-  private static RentReceivingAccount getRentReceivingAccount(CreateRentalProfileDTO createRentalProfileDTO)
+  public List<RentalProfileDetailsDTO> getAllRentalProfilesByUserIdOrOrganizationId(Long userId, Long organizationId)
   {
-    RentReceivingAccount rentReceivingAccount = new RentReceivingAccount();
-    rentReceivingAccount.setAccountNumber(createRentalProfileDTO.rentReceivingAccount().accountNumber());
-    rentReceivingAccount.setBankName(createRentalProfileDTO.rentReceivingAccount().bankName());
-    rentReceivingAccount.setMobileMoneyProvider(createRentalProfileDTO.rentReceivingAccount().mobileMoneyProvider());
-    rentReceivingAccount.setMobileMoneyNumber(createRentalProfileDTO.rentReceivingAccount().mobileMoneyNumber());
-    rentReceivingAccount.setDefault(createRentalProfileDTO.rentReceivingAccount().isDefault());
-    rentReceivingAccount.setPaymentMethod(createRentalProfileDTO.rentReceivingAccount().paymentMethod());
-    return rentReceivingAccount;
+    List<RentalProfile> rentalProfiles = rentalProfileRepository.findByUserIdOrOrganizationId(userId, organizationId);
+    return rentalProfiles.stream()
+      .map(RentalProfileService::getRentalProfileDetailsDTO)
+      .toList();
   }
 
   private static RentalProfileDetailsDTO getRentalProfileDetailsDTO(RentalProfile rentalProfile)
@@ -112,15 +89,6 @@ public class RentalProfileService
       rentalProfile.getName(),
       rentalProfile.getBusinessEmail(),
       rentalProfile.getType(),
-      rentalProfile.getMemberships() == null ? new ArrayList<>() :
-        rentalProfile.getMemberships()
-          .stream()
-          .map(m -> new MembershipDetailsDTO(
-            m.getId(),
-            m.getUserId(),
-            rentalProfile.getId(),
-            rentalProfile.getName()
-          )).toList(),
       rentReceivingAccount == null ? null : new RentReceivingAccountDetailsDTO(
         rentReceivingAccount.getId(),
         rentReceivingAccount.getAccountNumber(),

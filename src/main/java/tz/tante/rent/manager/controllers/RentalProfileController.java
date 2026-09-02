@@ -13,6 +13,8 @@ import tz.tante.rent.manager.models.dtos.requests.rentalprofiles.CreateRentalPro
 import tz.tante.rent.manager.models.dtos.responses.rentalprofiles.RentalProfileDetailsDTO;
 import tz.tante.rent.manager.services.RentalProfileService;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 @Setter
@@ -36,5 +38,13 @@ public class RentalProfileController
     RentalProfileDetailsDTO rentalProfileDetailsDTO = rentalProfileService.getRentalProfile(rentalProfileId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(rentalProfileDetailsDTO, HttpStatus.OK.value()));
+  }
+
+  @GetMapping("/{userId}/{organizationId}")
+  public ResponseEntity<ApiResponse<List<RentalProfileDetailsDTO>>> getAllRentalProfilesByUserIdOrOrganizationId(@PathVariable(required = false) Long userId, @PathVariable(required = false) Long organizationId)
+  {
+    List<RentalProfileDetailsDTO> rentalProfileDetailsDTOs = rentalProfileService.getAllRentalProfilesByUserIdOrOrganizationId(userId, organizationId);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(rentalProfileDetailsDTOs, HttpStatus.OK.value()));
   }
 }

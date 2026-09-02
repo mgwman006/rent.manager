@@ -12,31 +12,28 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table (name = "rental_profiles")
+@Table(name = "rental_profiles")
 public class RentalProfile extends BaseEntity
 {
   private String name;
 
+  private String phoneNumber;
+
   private String businessEmail;
+
+  private Long organizationId;
+
+  private Long userId;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private RentalProfileType type;
 
   @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  private Set<Membership> memberships = new HashSet<>();
-
-  @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   private Set<RentReceivingAccount> rentReceivingAccounts = new HashSet<>();
 
   @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   private Set<Lease> leases = new HashSet<>();
-
-  public void addMembership(Membership membership)
-  {
-    memberships.add(membership);
-    membership.setRentalProfile(this);
-  }
 
   public void addRentReceivingAccount(RentReceivingAccount rentReceivingAccount)
   {

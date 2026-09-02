@@ -11,7 +11,6 @@ public record RentalProfileDetailsDTO(
   String name,
   String businessEmail,
   RentalProfileType type,
-  List<MembershipDetailsDTO> memberships,
   RentReceivingAccountDetailsDTO rentReceivingAccount)
 {
 }
