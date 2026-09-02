@@ -1,13 +1,12 @@
 package tz.tante.rent.manager.controllers;
 
 import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
+import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.services.LeaseService;
 
@@ -26,5 +25,13 @@ public class LeaseController
     List<LeaseDetailsDTO> leases = leaseService.getLeasesByRentalProfile(rentalProfileId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(leases, HttpStatus.OK.value()));
+  }
+
+  @PostMapping
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLease(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
+  {
+    LeaseDetailsDTO leaseDetails = leaseService.createLease(leaseCreateDTO);
+    return ResponseEntity.status(HttpStatus.CREATED)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
   }
 }

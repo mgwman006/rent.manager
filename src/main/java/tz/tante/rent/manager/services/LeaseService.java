@@ -14,7 +14,6 @@ import tz.tante.rent.manager.models.entities.Tenant;
 import tz.tante.rent.manager.models.entities.TenantInvitation;
 import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
-import tz.tante.rent.manager.repositories.TenantInvitationRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
 
 import java.time.LocalDateTime;
@@ -27,7 +26,6 @@ public class LeaseService
   private final LeaseRepository leaseRepository;
   private final RentalProfileRepository rentalProfileRepository;
   private final TenantRepository tenantRepository;
-  private final TenantInvitationRepository tenantInvitationRepository;
 
   public List<LeaseDetailsDTO> getLeasesByRentalProfile(Long rentalProfileId)
   {
@@ -45,12 +43,15 @@ public class LeaseService
 
 
     Lease lease = new Lease();
-    lease.setStartDate(leaseCreateDTO.startDate().toLocalDate());
-    lease.setEndDate(leaseCreateDTO.endDate().toLocalDate());
+    lease.setStartDate(leaseCreateDTO.startDate());
+    lease.setEndDate(leaseCreateDTO.endDate());
+    lease.setRentPeriod(leaseCreateDTO.rentPeriod());
     lease.setRentAmount(leaseCreateDTO.rentAmount());
     lease.setCurrency(leaseCreateDTO.currency());
-    lease.setRentPeriod(leaseCreateDTO.rentPeriod());
     lease.setStatus(LeaseStatus.PENDING);
+    lease.setReferenceNumber("LEASE-" + System.currentTimeMillis());
+    lease.setUnitId(leaseCreateDTO.unitId());
+    lease.setTenantId(null);
 
     rentalProfile.addLease(lease);
 
@@ -58,7 +59,7 @@ public class LeaseService
     {
       Tenant tenant = tenantRepository.findById(leaseCreateDTO.tenantId())
         .orElseThrow(() -> new ResourceNotFoundException("Tenant with id " + leaseCreateDTO.tenantId() + " not found"));
-      lease.setTenant(tenant);
+      lease.setTenantId(tenant.getId());
     }
     else
     {
@@ -71,7 +72,7 @@ public class LeaseService
       tenantInvitation.setCreatedAt(LocalDateTime.now());
       tenantInvitation.setExpiresAt(LocalDateTime.now().plusDays(7)); // Set expiration date for the invitation
       tenantInvitation.setStatus(TenantInvitationStatus.PENDING);
-      tenantInvitation = tenantInvitationRepository.save(tenantInvitation);
+      tenantInvitation.setInvitationToken(java.util.UUID.randomUUID().toString());
       lease.addTenantInvitation(tenantInvitation);
     }
 
@@ -89,8 +90,10 @@ public class LeaseService
       lease.getStartDate().toString(),
       lease.getEndDate().toString(),
       lease.getRentAmount(),
+      lease.getCurrency(),
+      lease.getRentPeriod(),
       lease.getStatus().name(),
-      lease.getTenant() != null ? lease.getTenant().getId() : null
+      lease.getTenantId()
     );
   }
 

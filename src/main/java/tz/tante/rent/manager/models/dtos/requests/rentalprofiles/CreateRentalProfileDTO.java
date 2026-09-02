@@ -11,7 +11,7 @@ public record CreateRentalProfileDTO(
   @NotNull(message = "Phone number is required")
   String phoneNumber,
 
-  String businessEmail,
+  String email,
 
   Long userId,
 

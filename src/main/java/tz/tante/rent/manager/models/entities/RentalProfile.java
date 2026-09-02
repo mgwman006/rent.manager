@@ -19,7 +19,7 @@ public class RentalProfile extends BaseEntity
 
   private String phoneNumber;
 
-  private String businessEmail;
+  private String email;
 
   private Long organizationId;
 

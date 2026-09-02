@@ -45,9 +45,8 @@ public class Lease extends BaseEntity
 
   private Long unitId;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "tenant_id")
-  private Tenant tenant;
+  @Column(nullable = true)
+  private Long tenantId;
 
   @ManyToOne
   @JoinColumn(name = "rental_profile_id")
@@ -86,7 +85,6 @@ public class Lease extends BaseEntity
       "LS-RP%d-U%d-T%d-%s-%s",
       rentalProfile.getId(),
       unitId,
-      tenant.getId(),
       startDate.format(DateTimeFormatter.BASIC_ISO_DATE),
       endDate.format(DateTimeFormatter.BASIC_ISO_DATE)
     );

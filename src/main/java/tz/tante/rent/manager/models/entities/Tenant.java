@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.util.HashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -14,15 +12,5 @@ import java.util.Set;
 @Table(name = "tenants")
 public class Tenant extends BaseEntity
 {
-
   private Long userId;
-
-  @OneToMany(mappedBy = "tenant", fetch = FetchType.LAZY)
-  private Set<Lease> leases = new HashSet<>();
-
-  public void addLease(Lease lease)
-  {
-    leases.add(lease);
-    lease.setTenant(this);
-  }
 }

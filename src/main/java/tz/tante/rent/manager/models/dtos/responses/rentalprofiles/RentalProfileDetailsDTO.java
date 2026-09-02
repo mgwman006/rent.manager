@@ -9,7 +9,10 @@ import java.util.List;
 public record RentalProfileDetailsDTO(
   long id,
   String name,
-  String businessEmail,
+  String phoneNumber,
+  String email,
+  Long userId,
+  Long organizationId,
   RentalProfileType type,
   RentReceivingAccountDetailsDTO rentReceivingAccount)
 {

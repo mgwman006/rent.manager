@@ -1,5 +1,7 @@
 package tz.tante.rent.manager.models.dtos.responses;
 
+import tz.tante.rent.manager.enums.RentPeriod;
+
 import java.math.BigDecimal;
 
 public record LeaseDetailsDTO(
@@ -8,7 +10,9 @@ public record LeaseDetailsDTO(
   String startDate,
   String endDate,
   BigDecimal rentAmount,
+  String currency,
+  RentPeriod rentPeriod,
   String status,
-  long tenantId)
+  Long tenantId)
 {
 }

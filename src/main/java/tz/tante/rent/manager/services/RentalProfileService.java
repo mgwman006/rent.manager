@@ -44,7 +44,7 @@ public class RentalProfileService
       rentalProfile.setUserId(createRentalProfileDTO.userId());
       rentalProfile.setOrganizationId(createRentalProfileDTO.organizationId());
       rentalProfile.setPhoneNumber(createRentalProfileDTO.phoneNumber());
-      rentalProfile.setBusinessEmail(createRentalProfileDTO.businessEmail());
+      rentalProfile.setEmail(createRentalProfileDTO.email());
       rentalProfile.setName(createRentalProfileDTO.name());
       rentalProfile.setType(createRentalProfileDTO.type());
       rentalProfile  = rentalProfileRepository.save(rentalProfile);
@@ -87,7 +87,10 @@ public class RentalProfileService
     return new RentalProfileDetailsDTO(
       rentalProfile.getId(),
       rentalProfile.getName(),
-      rentalProfile.getBusinessEmail(),
+      rentalProfile.getPhoneNumber(),
+      rentalProfile.getEmail(),
+      rentalProfile.getUserId(),
+      rentalProfile.getOrganizationId(),
       rentalProfile.getType(),
       rentReceivingAccount == null ? null : new RentReceivingAccountDetailsDTO(
         rentReceivingAccount.getId(),
