@@ -14,10 +14,10 @@
 	</parent>
 
 	<groupId>tz.tante</groupId>
-	<artifactId>rent.manager</artifactId>
+	<artifactId>rent-manager</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>rent.manager</name>
+	<name>rent-manager</name>
 	<description>Rental management system for landlords and tenants</description>
 
 	<properties>
