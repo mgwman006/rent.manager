@@ -45,42 +45,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
 
     try
     {
-
       String authHeader = request.getHeader("Authorization");
 
-      if (authHeader == null || !authHeader.startsWith("Bearer "))
+      if (authHeader != null && authHeader.startsWith("Bearer "))
       {
-        authenticationEntryPoint.commence(
-          request,
-          response,
-          new BadCredentialsException("Missing Authorization token")
-        );
-        return;
+        String token = authHeader.substring(7);
+
+        Claims claims = JwtUtils.getClaims(token);
+
+        if (!JwtUtils.isValidIssuer(token))
+        {
+          throw new AuthException("Invalid issuer");
+        }
+
+        UsernamePasswordAuthenticationToken auth =
+          new UsernamePasswordAuthenticationToken(
+            claims.getSubject(),
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+          );
+
+        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
       }
-
-      String token = authHeader.substring(7);
-
-      Claims claims = JwtUtils.getClaims(token);
-
-      // ✔ issuer validation
-      if (!JwtUtils.isValidIssuer(token))
-      {
-        throw new AuthException("Invalid issuer");
-      }
-
-      // ✔ create authentication
-      UsernamePasswordAuthenticationToken auth =
-        new UsernamePasswordAuthenticationToken(
-          claims.getSubject(),
-          null,
-          List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-
-      auth.setDetails(
-        new WebAuthenticationDetailsSource().buildDetails(request)
-      );
-
-      SecurityContextHolder.getContext().setAuthentication(auth);
 
       filterChain.doFilter(request, response);
 
