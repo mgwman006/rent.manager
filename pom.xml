@@ -14,10 +14,10 @@
 	</parent>
 
 	<groupId>tz.tante</groupId>
-	<artifactId>rent.manager</artifactId>
+	<artifactId>rent-manager</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>rent.manager</name>
+	<name>rent-manager</name>
 	<description>Rental management system for landlords and tenants</description>
 
 	<properties>
@@ -98,6 +98,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>9.31</version>
 		</dependency>
 
 	</dependencies>

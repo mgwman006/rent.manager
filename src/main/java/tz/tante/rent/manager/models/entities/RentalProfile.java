@@ -12,20 +12,39 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table (name = "rental_profiles")
+@Table(name = "rental_profiles")
 public class RentalProfile extends BaseEntity
 {
   private String name;
 
-  private String businessEmail;
+  private String phoneNumber;
+
+  private String email;
+
+  private Long organizationId;
+
+  private Long userId;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private RentalProfileType type;
 
-  @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY)
-  private Set<Unit> units = new HashSet<>();
+  @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  private Set<RentReceivingAccount> rentReceivingAccounts = new HashSet<>();
 
-  @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY)
-  private Set<RentalProfileMembership> memberships = new HashSet<>();
+  @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  private Set<Lease> leases = new HashSet<>();
+
+  public void addRentReceivingAccount(RentReceivingAccount rentReceivingAccount)
+  {
+    rentReceivingAccounts.add(rentReceivingAccount);
+    rentReceivingAccount.setRentalProfile(this);
+  }
+
+  public void addLease(Lease lease)
+  {
+    leases.add(lease);
+    lease.setRentalProfile(this);
+  }
+
 }

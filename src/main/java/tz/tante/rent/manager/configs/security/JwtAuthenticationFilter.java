@@ -1,62 +1,97 @@
 package tz.tante.rent.manager.configs.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.lang.NonNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tz.tante.rent.manager.exceptions.AuthException;
 import tz.tante.rent.manager.utilities.JwtUtils;
 import java.io.IOException;
 import java.util.List;
 
 @Component
+@AllArgsConstructor
+@Getter
+@Setter
 public class JwtAuthenticationFilter extends OncePerRequestFilter
 {
-  private final JwtUtils jwtUtils;
+  private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
-  public JwtAuthenticationFilter(JwtUtils jwtUtils)
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request)
   {
-    this.jwtUtils = jwtUtils;
+    String path = request.getServletPath();
+
+    return path.startsWith("/swagger-ui")
+      || path.startsWith("/v3/api-docs")
+      || path.equals("/swagger-ui.html");
   }
 
   @Override
-  protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                  @NonNull HttpServletResponse response,
-                                  @NonNull FilterChain filterChain) throws IOException
+  protected void doFilterInternal(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  FilterChain filterChain) throws IOException
   {
+
     try
     {
-      String authHeader = request.getHeader("Authorization");
-      if (authHeader != null && authHeader.startsWith("Bearer "))
-      {
-        String token = authHeader.substring(7);
-        if (jwtUtils.validateToken(token))
-        {
-          String email = jwtUtils.getEmailFromToken(token);
-          List<SimpleGrantedAuthority> roles = jwtUtils.getRolesFromToken(token)
-            .stream()
-            .map(SimpleGrantedAuthority::new)
-            .toList();
 
-          var authToken = new UsernamePasswordAuthenticationToken(email, null, roles);
-          authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-          SecurityContextHolder.getContext().setAuthentication(authToken);
-        }
+      String authHeader = request.getHeader("Authorization");
+
+      if (authHeader == null || !authHeader.startsWith("Bearer "))
+      {
+        authenticationEntryPoint.commence(
+          request,
+          response,
+          new BadCredentialsException("Missing Authorization token")
+        );
+        return;
       }
 
-      filterChain.doFilter(request, response);
-    }
-    catch (Exception exception)
-    {
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      response.setContentType("application/json");
-      response.getWriter().write(exception.getMessage());
-    }
+      String token = authHeader.substring(7);
 
+      Claims claims = JwtUtils.getClaims(token);
+
+      // ✔ issuer validation
+      if (!JwtUtils.isValidIssuer(token))
+      {
+        throw new AuthException("Invalid issuer");
+      }
+
+      // ✔ create authentication
+      UsernamePasswordAuthenticationToken auth =
+        new UsernamePasswordAuthenticationToken(
+          claims.getSubject(),
+          null,
+          List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+
+      auth.setDetails(
+        new WebAuthenticationDetailsSource().buildDetails(request)
+      );
+
+      SecurityContextHolder.getContext().setAuthentication(auth);
+
+      filterChain.doFilter(request, response);
+
+    }
+    catch (Exception ex)
+    {
+      authenticationEntryPoint.commence(
+        request,
+        response,
+        new BadCredentialsException(ex.getMessage(), ex)
+      );
+    }
   }
 }
