@@ -13,6 +13,8 @@ public record LeaseDetailsDTO(
   String currency,
   RentPeriod rentPeriod,
   String status,
-  Long tenantId)
+  Long tenantId,
+  String tenantFirstName,
+  String tenantLastName)
 {
 }

@@ -13,4 +13,6 @@ import lombok.Setter;
 public class Tenant extends BaseEntity
 {
   private Long userId;
+  private String firstName;
+  private String lastName;
 }

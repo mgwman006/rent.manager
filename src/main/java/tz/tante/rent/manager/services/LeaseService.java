@@ -17,6 +17,7 @@ import tz.tante.rent.manager.repositories.RentalProfileRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -69,8 +70,8 @@ public class LeaseService
       tenantInvitation.setFirstName(leaseCreateDTO.tenantFirstName());
       tenantInvitation.setLastName(leaseCreateDTO.tenantLastName());
       tenantInvitation.setPhoneNumber(leaseCreateDTO.tenantPhoneNumber());
-      tenantInvitation.setCreatedAt(LocalDateTime.now());
-      tenantInvitation.setExpiresAt(LocalDateTime.now().plusDays(7)); // Set expiration date for the invitation
+      tenantInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
+      tenantInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
       tenantInvitation.setStatus(TenantInvitationStatus.PENDING);
       tenantInvitation.setInvitationToken(java.util.UUID.randomUUID().toString());
       lease.addTenantInvitation(tenantInvitation);
@@ -84,6 +85,11 @@ public class LeaseService
 
   private LeaseDetailsDTO getLeaseDetailsDTO(Lease lease)
   {
+    Tenant tenant = null;
+    if (lease.getTenantId() != null)
+    {
+      tenant = tenantRepository.findById(lease.getTenantId()).orElse(null);
+    }
     return new LeaseDetailsDTO(
       lease.getReferenceNumber(),
       lease.getId(),
@@ -93,7 +99,9 @@ public class LeaseService
       lease.getCurrency(),
       lease.getRentPeriod(),
       lease.getStatus().name(),
-      lease.getTenantId()
+      lease.getTenantId(),
+      tenant != null ? tenant.getFirstName() : null,
+      tenant != null ? tenant.getLastName() : null
     );
   }
 
