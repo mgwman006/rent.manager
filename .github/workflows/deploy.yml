@@ -58,11 +58,11 @@ jobs:
           cd /home/ubuntu/rent-manager
 
           echo "Stopping old container..."
-          sudo docker stop auth-manager || true
-          sudo docker rm auth-manager || true
+          sudo docker stop rent-manager || true
+          sudo docker rm rent-manager || true
 
           echo "Loading new image..."
-          gunzip -c auth-manager.tar.gz | sudo docker load
+          gunzip -c rent-manager.tar.gz | sudo docker load
 
           echo "Starting new container..."
           sudo docker run -d \
