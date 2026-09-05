@@ -4,6 +4,7 @@ import tz.tante.rent.manager.enums.PaymentPeriod;
 import tz.tante.rent.manager.enums.RentPeriod;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record LeaseDetailsDTO(
   String referenceNumber,
@@ -18,6 +19,7 @@ public record LeaseDetailsDTO(
   BigDecimal amountPaid,
   BigDecimal balance,
   String status,
-  TenantDetailsDTO tenant)
+  TenantDetailsDTO tenant,
+  List<TenantInvitationDetailsDTO> tenantInvitations)
 {
 }

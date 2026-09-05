@@ -11,6 +11,7 @@ import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
+import tz.tante.rent.manager.models.dtos.responses.TenantInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.*;
 import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.LeaseSequenceRepository;
@@ -117,6 +118,12 @@ public class LeaseService
     {
       tenant = tenantRepository.findById(lease.getTenantId()).orElse(null);
     }
+
+    List<TenantInvitationDetailsDTO> tenantInvitations = lease.getTenantInvitations()
+      .stream()
+      .map(invitation -> mapTenantInvitationToDTO(lease.getId(), invitation))
+      .toList();
+
     return new LeaseDetailsDTO(
       lease.getReferenceNumber(),
       lease.getId(),
@@ -137,7 +144,8 @@ public class LeaseService
         tenant.getLastName(),
         tenant.getEmail(),
         tenant.getPhoneNumber()
-      ) : null
+      ) : null,
+      tenantInvitations
     );
   }
 
@@ -206,5 +214,21 @@ public class LeaseService
     }
 
     return rentAmount.multiply(BigDecimal.valueOf(multiplier)).setScale(2, BigDecimal.ROUND_HALF_UP);
+  }
+
+  private TenantInvitationDetailsDTO mapTenantInvitationToDTO(Long leaseId, TenantInvitation invitation) {
+    return new TenantInvitationDetailsDTO(
+      leaseId,
+      invitation.getId(),
+      invitation.getFirstName(),
+      invitation.getLastName(),
+      invitation.getPhoneNumber(),
+      invitation.getEmail(),
+      invitation.getInvitationToken(),
+      invitation.getStatus(),
+      invitation.getExpiresAt(),
+      invitation.getAcceptedAt(),
+      invitation.getSentAt()
+    );
   }
 }
