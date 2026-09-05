@@ -4,11 +4,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import tz.tante.rent.manager.enums.LeaseStatus;
+import tz.tante.rent.manager.enums.PaymentPeriod;
 import tz.tante.rent.manager.enums.RentPeriod;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +35,19 @@ public class Lease extends BaseEntity
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private RentPeriod rentPeriod;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private PaymentPeriod paymentPeriod;
+
+  @Column(nullable = false, precision = 12, scale = 2)
+  private BigDecimal paymentAmount;
+
+  @Column(nullable = false, precision = 12, scale = 2)
+  private BigDecimal amountPaid = BigDecimal.ZERO;
+
+  @Column(nullable = false, precision = 12, scale = 2)
+  private BigDecimal balance;
 
   @Column(nullable = false)
   private String currency;
@@ -66,7 +79,8 @@ public class Lease extends BaseEntity
   )
   private Set<TenantInvitation> tenantInvitations = new HashSet<>();
 
-  public void addTenantInvitation(TenantInvitation invitation) {
+  public void addTenantInvitation(TenantInvitation invitation)
+  {
     tenantInvitations.add(invitation);
     invitation.setLease(this);
   }
@@ -79,14 +93,4 @@ public class Lease extends BaseEntity
       && !today.isAfter(endDate);
   }
 
-  public String generateReferenceNumber()
-  {
-    return this.referenceNumber = String.format(
-      "LS-RP%d-U%d-T%d-%s-%s",
-      rentalProfile.getId(),
-      unitId,
-      startDate.format(DateTimeFormatter.BASIC_ISO_DATE),
-      endDate.format(DateTimeFormatter.BASIC_ISO_DATE)
-    );
-  }
 }

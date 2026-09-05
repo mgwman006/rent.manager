@@ -4,18 +4,20 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tz.tante.rent.manager.enums.LeaseStatus;
+import tz.tante.rent.manager.enums.PaymentPeriod;
+import tz.tante.rent.manager.enums.RentPeriod;
 import tz.tante.rent.manager.enums.TenantInvitationStatus;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
-import tz.tante.rent.manager.models.entities.Lease;
-import tz.tante.rent.manager.models.entities.RentalProfile;
-import tz.tante.rent.manager.models.entities.Tenant;
-import tz.tante.rent.manager.models.entities.TenantInvitation;
+import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
+import tz.tante.rent.manager.models.entities.*;
 import tz.tante.rent.manager.repositories.LeaseRepository;
+import tz.tante.rent.manager.repositories.LeaseSequenceRepository;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -27,6 +29,7 @@ public class LeaseService
   private final LeaseRepository leaseRepository;
   private final RentalProfileRepository rentalProfileRepository;
   private final TenantRepository tenantRepository;
+  private final LeaseSequenceRepository leaseSequenceRepository;
 
   public List<LeaseDetailsDTO> getLeasesByRentalProfile(Long rentalProfileId)
   {
@@ -42,15 +45,30 @@ public class LeaseService
     RentalProfile rentalProfile = rentalProfileRepository.findById(leaseCreateDTO.rentalProfileId())
       .orElseThrow(() -> new ResourceNotFoundException("Rental profile with id " + leaseCreateDTO.rentalProfileId() + " not found"));
 
+    int currentYear = LocalDateTime.now(ZoneId.of("UTC")).getYear();
+    LeaseSequence leaseSequence = leaseSequenceRepository.findForUpdate(rentalProfile.getId(), currentYear)
+      .orElseGet(() -> createSequence(rentalProfile.getId(),currentYear));
+
+    Long nextSequence = leaseSequence.getLastSequence() + 1;
+    leaseSequence.setLastSequence(nextSequence);
+
+    BigDecimal paymentAmount = getPaymentAmount(leaseCreateDTO.rentAmount(), leaseCreateDTO.rentPeriod(), leaseCreateDTO.paymentPeriod());
+    BigDecimal amountPaid = BigDecimal.ZERO;
+    BigDecimal balance = paymentAmount.subtract(amountPaid);
+
 
     Lease lease = new Lease();
     lease.setStartDate(leaseCreateDTO.startDate());
     lease.setEndDate(leaseCreateDTO.endDate());
-    lease.setRentPeriod(leaseCreateDTO.rentPeriod());
     lease.setRentAmount(leaseCreateDTO.rentAmount());
     lease.setCurrency(leaseCreateDTO.currency());
+    lease.setRentPeriod(leaseCreateDTO.rentPeriod());
+    lease.setPaymentPeriod(leaseCreateDTO.paymentPeriod());
+    lease.setPaymentAmount(paymentAmount);
+    lease.setAmountPaid(amountPaid);
+    lease.setBalance(balance);
     lease.setStatus(LeaseStatus.PENDING);
-    lease.setReferenceNumber("LEASE-" + System.currentTimeMillis());
+    lease.setReferenceNumber(String.format("LS-RP%d-%d-%06d", rentalProfile.getId(), currentYear, nextSequence));
     lease.setUnitId(leaseCreateDTO.unitId());
     lease.setTenantId(null);
 
@@ -81,6 +99,15 @@ public class LeaseService
     return getLeaseDetailsDTO(savedLease);
   }
 
+  private LeaseSequence createSequence(Long rentalProfileId, int currentYear)
+  {
+    LeaseSequence leaseSequence = new LeaseSequence();
+    leaseSequence.setRentalProfileId(rentalProfileId);
+    leaseSequence.setYear(currentYear);
+    leaseSequence.setLastSequence(0L);
+    leaseSequence = leaseSequenceRepository.save(leaseSequence);
+    return leaseSequence;
+  }
 
 
   private LeaseDetailsDTO getLeaseDetailsDTO(Lease lease)
@@ -98,10 +125,19 @@ public class LeaseService
       lease.getRentAmount(),
       lease.getCurrency(),
       lease.getRentPeriod(),
+      lease.getPaymentPeriod(),
+      lease.getPaymentAmount(),
+      lease.getAmountPaid(),
+      lease.getBalance(),
       lease.getStatus().name(),
-      lease.getTenantId(),
-      tenant != null ? tenant.getFirstName() : null,
-      tenant != null ? tenant.getLastName() : null
+      tenant != null ? new TenantDetailsDTO(
+        tenant.getId(),
+        tenant.getUserId(),
+        tenant.getFirstName(),
+        tenant.getLastName(),
+        tenant.getEmail(),
+        tenant.getPhoneNumber()
+      ) : null
     );
   }
 
@@ -109,5 +145,66 @@ public class LeaseService
   {
     // Implement the logic to send an invitation to the tenant
     // This could involve sending an email or SMS with a link to create an account
+  }
+
+  private BigDecimal getPaymentAmount(BigDecimal rentAmount, RentPeriod rentPeriod, PaymentPeriod paymentPeriod)
+  {
+    BigDecimal paymentAmount = BigDecimal.ZERO;
+    int multiplier = 1;
+
+    switch (rentPeriod)
+    {
+      case DAILY -> {
+        switch (paymentPeriod)
+        {
+          case DAILY -> multiplier = 1;
+          case WEEKLY -> multiplier = 7;
+          case MONTHLY -> multiplier = 30;
+          case YEARLY -> multiplier = 365;
+          default -> throw new IllegalArgumentException("Invalid payment period for daily rent period");
+        }
+      }
+
+      case WEEKLY -> {
+        switch (paymentPeriod)
+        {
+          case WEEKLY -> multiplier = 1;
+          case MONTHLY -> multiplier = 4;
+          case YEARLY -> multiplier = 52;
+          default -> throw new IllegalArgumentException("Invalid payment period for weekly rent period");
+        }
+      }
+
+      case MONTHLY -> {
+        switch (paymentPeriod)
+        {
+          case MONTHLY -> multiplier = 1;
+          case SIX_MONTHS -> multiplier = 6;
+          case YEARLY -> multiplier = 12;
+          default -> throw new IllegalArgumentException("Invalid payment period for monthly rent period");
+        }
+      }
+
+      case SIX_MONTHS -> {
+        switch (paymentPeriod)
+        {
+          case SIX_MONTHS -> multiplier = 1;
+          case YEARLY -> multiplier = 2;
+          default -> throw new IllegalArgumentException("Invalid payment period for six months rent period");
+        }
+      }
+
+      case YEARLY -> {
+        switch (paymentPeriod)
+        {
+          case YEARLY -> multiplier = 1;
+          default -> throw new IllegalArgumentException("Invalid payment period for yearly rent period");
+        }
+      }
+
+      default -> throw new IllegalArgumentException("Invalid rent period");
+    }
+
+    return rentAmount.multiply(BigDecimal.valueOf(multiplier)).setScale(2, BigDecimal.ROUND_HALF_UP);
   }
 }

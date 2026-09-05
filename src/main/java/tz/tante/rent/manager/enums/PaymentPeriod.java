@@ -1,6 +1,7 @@
 package tz.tante.rent.manager.enums;
 
-public enum RentPeriod {
+public enum PaymentPeriod
+{
   DAILY,
   WEEKLY,
   MONTHLY,
