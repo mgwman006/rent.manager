@@ -157,7 +157,6 @@ public class LeaseService
 
   private BigDecimal getPaymentAmount(BigDecimal rentAmount, RentPeriod rentPeriod, PaymentPeriod paymentPeriod)
   {
-    BigDecimal paymentAmount = BigDecimal.ZERO;
     int multiplier = 1;
 
     switch (rentPeriod)
@@ -230,5 +229,12 @@ public class LeaseService
       invitation.getAcceptedAt(),
       invitation.getSentAt()
     );
+  }
+
+  public LeaseDetailsDTO getLeaseById(Long leaseId)
+  {
+    Lease lease = leaseRepository.findById(leaseId)
+      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + " not found"));
+    return getLeaseDetailsDTO(lease);
   }
 }
