@@ -92,7 +92,6 @@ public class LeaseService
       tenantInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
       tenantInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
       tenantInvitation.setStatus(TenantInvitationStatus.PENDING);
-      tenantInvitation.setInvitationToken(java.util.UUID.randomUUID().toString());
       lease.addTenantInvitation(tenantInvitation);
     }
 
@@ -223,7 +222,7 @@ public class LeaseService
       invitation.getLastName(),
       invitation.getPhoneNumber(),
       invitation.getEmail(),
-      invitation.getInvitationToken(),
+      invitation.getToken(),
       invitation.getStatus(),
       invitation.getExpiresAt(),
       invitation.getAcceptedAt(),

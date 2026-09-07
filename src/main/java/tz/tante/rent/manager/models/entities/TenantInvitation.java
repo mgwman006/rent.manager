@@ -7,6 +7,7 @@ import lombok.Setter;
 import tz.tante.rent.manager.enums.TenantInvitationStatus;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,6 +15,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "tenant_invitations")
 public class TenantInvitation extends BaseEntity {
+
+  @Column(nullable = false, unique = true)
+  private UUID token = UUID.randomUUID();
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "lease_id", nullable = false)
@@ -29,9 +33,6 @@ public class TenantInvitation extends BaseEntity {
   private String phoneNumber;
 
   private String email;
-
-  @Column(nullable = false, unique = true)
-  private String invitationToken;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
