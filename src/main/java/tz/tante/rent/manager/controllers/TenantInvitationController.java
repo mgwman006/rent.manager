@@ -22,11 +22,11 @@ public class TenantInvitationController
     private final TenantInvitationService tenantInvitationService;
 
     @GetMapping("/{invitationToken}")
-    public ResponseEntity<ApiResponse<LeaseDetailsDTO>> getLeaseDetails(@PathVariable UUID invitationToken)
+    public ResponseEntity<ApiResponse<TenantInvitationDetailsDTO>> getTenantInvitationDetails(@PathVariable UUID invitationToken)
     {
-        LeaseDetailsDTO leaseDetailsDTO = tenantInvitationService.getLeaseDetails(invitationToken);
+        TenantInvitationDetailsDTO tenantInvitationDetailsDTO = tenantInvitationService.getTenantInvitationDetails(invitationToken);
         return ResponseEntity.status(200)
-          .body(ApiResponse.success(leaseDetailsDTO, 200));
+          .body(ApiResponse.success(tenantInvitationDetailsDTO, 200));
     }
 
     @PostMapping

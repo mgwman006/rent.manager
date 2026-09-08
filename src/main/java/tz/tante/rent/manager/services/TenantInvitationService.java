@@ -127,4 +127,11 @@ public class TenantInvitationService
   }
 
 
+  public TenantInvitationDetailsDTO getTenantInvitationDetails(UUID invitationToken)
+  {
+    TenantInvitation invitation = tenantInvitationRepository.findByToken(invitationToken)
+      .orElseThrow(() -> new ResourceNotFoundException("Tenant invitation not found with token: " + invitationToken));
+
+    return mapTenantInvitationToDTO(invitation.getLease().getId(), invitation);
+  }
 }
