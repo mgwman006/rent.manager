@@ -1,49 +1,30 @@
 package tz.tante.rent.manager.services;
 
+import lombok.AllArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
+import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
+import tz.tante.rent.manager.repositories.TenantRepository;
 
 @Service
+@Setter
+@AllArgsConstructor
 public class TenantService
 {
-//    @Autowired
-//    TenantRepository tenantRepository;
+  private final TenantRepository tenantRepository;
 
-    //CREATE
-//    public Tenant createTenant(Tenant tenant)
-//    {
-//        return tenantRepository.save(tenant);
-//    }
-//
-//    //READ
-//    public List<Tenant> getTenants()
-//    {
-//        return tenantRepository.findAll();
-//    }
-//
-//    //READ ONE TENANT
-//    public Optional<Tenant> getTenant(String tenantId)
-//    {
-//        return tenantRepository.findById(tenantId);
-//    }
-//
-//
-//    //DELETE
-//    public void deleteTenant(String tenantId)
-//    {
-//        tenantRepository.deleteById(tenantId);
-//    }
-//
-//    //UPDATE
-//    public Tenant updateTenant(String tenantId, Tenant tenantDetails)
-//    {
-//        Tenant tenant = tenantRepository.findById(tenantId).get();
-//        tenant.setFirstName(tenantDetails.getFirstName());
-//        tenant.setSecondName(tenantDetails.getSecondName());
-//        tenant.setPhoneNumber(tenantDetails.getPhoneNumber());
-//        tenant.setEmailId(tenantDetails.getEmailId());
-//        return tenantRepository.save(tenant);
-//    }
-
-
+  public TenantDetailsDTO getTenantDetailsByUserId(Long userId)
+  {
+    return tenantRepository.findByUserId(userId)
+      .map(tenant -> new TenantDetailsDTO(
+        tenant.getId(),
+        tenant.getUserId(),
+        tenant.getFirstName(),
+        tenant.getLastName(),
+        tenant.getEmail(),
+        tenant.getPhoneNumber()
+      ))
+      .orElseThrow(() -> new RuntimeException("Tenant not found for userId: " + userId));
+  }
 
 }

@@ -37,7 +37,7 @@ public class TenantInvitationController
           .body(ApiResponse.success(tenantInvitationDetailsDTO, 201));
     }
 
-    @PatchMapping("/{invitationToken}/accept")
+    @PostMapping("/{invitationToken}/accept")
     public ResponseEntity<ApiResponse<Void>> acceptTenantInvitation(@PathVariable UUID invitationToken, @RequestParam Long userId)
     {
         tenantInvitationService.acceptTenantInvitation(invitationToken, userId);
