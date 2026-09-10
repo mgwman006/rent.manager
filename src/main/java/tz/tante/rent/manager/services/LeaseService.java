@@ -32,6 +32,22 @@ public class LeaseService
   private final TenantRepository tenantRepository;
   private final LeaseSequenceRepository leaseSequenceRepository;
 
+
+  public List<LeaseDetailsDTO> getActiveLeasesByTenant(Long tenantId)
+  {
+    List<Lease> leases = leaseRepository.findByTenantIdAndStatus(tenantId, LeaseStatus.ACTIVE);
+    return leases.stream()
+      .map(this::getLeaseDetailsDTO)
+      .toList();
+  }
+
+  public List<LeaseDetailsDTO> getAllLeases()
+  {
+    List<Lease> leases = leaseRepository.findAll();
+    return leases.stream()
+      .map(this::getLeaseDetailsDTO)
+      .toList();
+  }
   public List<LeaseDetailsDTO> getLeasesByRentalProfile(Long rentalProfileId)
   {
     List<Lease> leases = leaseRepository.findByRentalProfileId(rentalProfileId);

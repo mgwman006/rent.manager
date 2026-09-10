@@ -16,11 +16,15 @@ import tz.tante.rent.manager.models.entities.TenantInvitation;
 import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.TenantInvitationRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
+import static tz.tante.rent.manager.utilities.Constant.TENANT_NOT_FOUND_BY_TOKEN_MESSAGE;
+
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
 
 @Service
 @AllArgsConstructor
@@ -34,7 +38,7 @@ public class TenantInvitationService
   public LeaseDetailsDTO getLeaseDetails(UUID invitationToken)
   {
     TenantInvitation invitation = tenantInvitationRepository.findByToken(invitationToken)
-      .orElseThrow(() -> new ResourceNotFoundException("Tenant invitation not found with token: " + invitationToken));
+      .orElseThrow(() -> new ResourceNotFoundException(TENANT_NOT_FOUND_BY_TOKEN_MESSAGE + invitationToken));
 
     Lease lease = invitation.getLease();
     return new LeaseDetailsDTO(
@@ -78,7 +82,7 @@ public class TenantInvitationService
   public void acceptTenantInvitation(UUID invitationToken, Long userId)
   {
     TenantInvitation invitation = tenantInvitationRepository.findByToken(invitationToken)
-      .orElseThrow(() -> new ResourceNotFoundException("Tenant invitation not found with token: " + invitationToken));
+      .orElseThrow(() -> new ResourceNotFoundException(TENANT_NOT_FOUND_BY_TOKEN_MESSAGE + invitationToken));
 
     Tenant tenant = tenantRepository.findByUserId(userId)
       .orElse(createTenant(
@@ -126,12 +130,19 @@ public class TenantInvitationService
     return tenantRepository.save(tenant);
   }
 
-
   public TenantInvitationDetailsDTO getTenantInvitationDetails(UUID invitationToken)
   {
     TenantInvitation invitation = tenantInvitationRepository.findByToken(invitationToken)
-      .orElseThrow(() -> new ResourceNotFoundException("Tenant invitation not found with token: " + invitationToken));
+      .orElseThrow(() -> new ResourceNotFoundException(TENANT_NOT_FOUND_BY_TOKEN_MESSAGE + invitationToken));
 
     return mapTenantInvitationToDTO(invitation.getLease().getId(), invitation);
+  }
+
+  public List<TenantInvitationDetailsDTO> getActiveInvitationsByPhoneNumber(String phoneNumber)
+  {
+    List<TenantInvitation> invitations = tenantInvitationRepository.findByPhoneNumberAndStatus(phoneNumber, TenantInvitationStatus.PENDING);
+    return invitations.stream()
+      .map(invitation -> mapTenantInvitationToDTO(invitation.getLease().getId(), invitation))
+      .toList();
   }
 }

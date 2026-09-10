@@ -19,6 +19,14 @@ public class LeaseController
 {
   private final LeaseService leaseService;
 
+  @PostMapping
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLease(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
+  {
+    LeaseDetailsDTO leaseDetails = leaseService.createLease(leaseCreateDTO);
+    return ResponseEntity.status(HttpStatus.CREATED)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
+  }
+
   @GetMapping("/rental-profile/{rentalProfileId}")
   public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getLeasesByRentalProfile(@PathVariable Long rentalProfileId)
   {
@@ -35,11 +43,11 @@ public class LeaseController
       .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
   }
 
-  @PostMapping
-  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLease(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
+  @GetMapping("/tenant/{tenantId}")
+  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getActiveLeasesByTenant(@PathVariable Long tenantId)
   {
-    LeaseDetailsDTO leaseDetails = leaseService.createLease(leaseCreateDTO);
-    return ResponseEntity.status(HttpStatus.CREATED)
-      .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
+    List<LeaseDetailsDTO> leases = leaseService.getActiveLeasesByTenant(tenantId);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leases, HttpStatus.OK.value()));
   }
 }

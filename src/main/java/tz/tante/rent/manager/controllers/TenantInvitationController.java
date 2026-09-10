@@ -7,10 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.tenantinvitation.TenantInvitationCreateDTO;
-import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.TenantInvitationDetailsDTO;
 import tz.tante.rent.manager.services.TenantInvitationService;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -45,4 +45,11 @@ public class TenantInvitationController
                 .body(ApiResponse.success(null, 200));
     }
 
+    @GetMapping("/phone/{phoneNumber}")
+    public ResponseEntity<ApiResponse<List<TenantInvitationDetailsDTO>>> getActiveInvitationsByPhoneNumber(@PathVariable String phoneNumber)
+    {
+        List<TenantInvitationDetailsDTO> invitations = tenantInvitationService.getActiveInvitationsByPhoneNumber(phoneNumber);
+        return ResponseEntity.status(200)
+          .body(ApiResponse.success(invitations, 200));
+    }
 }
