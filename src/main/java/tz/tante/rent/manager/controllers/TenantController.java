@@ -10,15 +10,15 @@ import tz.tante.rent.manager.services.TenantService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/V1/tenants")
+@RequestMapping("/v1/tenants")
 @Setter
 @AllArgsConstructor
 public class TenantController
 {
   private final TenantService tenantService;
 
-  @GetMapping("/{userId}/user")
-  public ResponseEntity<ApiResponse<TenantDetailsDTO>> getTenantDetailsByUserId(@PathVariable Long userId)
+  @GetMapping
+  public ResponseEntity<ApiResponse<TenantDetailsDTO>> getTenantDetailsByUserId(@RequestParam Long userId)
   {
       TenantDetailsDTO tenantDetails = tenantService.getTenantDetailsByUserId(userId);
       return ResponseEntity.status(HttpStatus.OK).
