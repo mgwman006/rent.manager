@@ -2,10 +2,12 @@ package tz.tante.rent.manager.services;
 
 import lombok.AllArgsConstructor;
 import lombok.Setter;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.TenantInvitationStatus;
+import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.models.dtos.requests.tenantinvitation.TenantInvitationCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.TenantInvitationDetailsDTO;
@@ -58,13 +60,30 @@ public class TenantInvitationService
     TenantInvitation invitation = tenantInvitationRepository.findByToken(invitationToken)
       .orElseThrow(() -> new ResourceNotFoundException(TENANT_NOT_FOUND_BY_TOKEN_MESSAGE + invitationToken));
 
-    Tenant tenant = tenantRepository.findByUserId(userId)
-      .orElse(createTenant(
-        userId,
-        invitation.getPhoneNumber(),
-        invitation.getEmail(),
-        invitation.getFirstName(),
-        invitation.getLastName()));
+    if (invitation.getStatus() != TenantInvitationStatus.PENDING)
+    {
+      throw new ResourceExistException("Tenant invitation has already been processed.");
+    }
+
+    Tenant tenant = tenantRepository.findByUserId(userId).orElse(null);
+    if (tenant == null)
+    {
+      try
+      {
+        tenant = new Tenant();
+        tenant.setUserId(userId);
+        tenant.setPhoneNumber(invitation.getPhoneNumber());
+        tenant.setEmail(invitation.getEmail());
+        tenant.setFirstName(invitation.getFirstName());
+        tenant.setLastName(invitation.getLastName());
+        tenant = tenantRepository.save(tenant);
+      }
+      catch (DataIntegrityViolationException ex)
+      {
+        tenant = tenantRepository.findByUserId(userId)
+          .orElseThrow(() -> ex);
+      }
+    }
 
 
     Lease lease = invitation.getLease();
@@ -92,16 +111,6 @@ public class TenantInvitationService
       invitation.getAcceptedAt() != null ? invitation.getAcceptedAt() : null,
       invitation.getSentAt() != null ? invitation.getSentAt() : null
     );
-  }
-
-  private Tenant createTenant(Long userId, String phoneNumber, String email, String firstName, String lastName) {
-    Tenant tenant = new Tenant();
-    tenant.setUserId(userId);
-    tenant.setPhoneNumber(phoneNumber);
-    tenant.setEmail(email);
-    tenant.setFirstName(firstName);
-    tenant.setLastName(lastName);
-    return tenantRepository.save(tenant);
   }
 
   public TenantInvitationDetailsDTO getTenantInvitationDetails(UUID invitationToken)

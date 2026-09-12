@@ -1,5 +1,7 @@
 package tz.tante.rent.manager.repositories;
 
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import tz.tante.rent.manager.enums.TenantInvitationStatus;
 import tz.tante.rent.manager.models.entities.TenantInvitation;
