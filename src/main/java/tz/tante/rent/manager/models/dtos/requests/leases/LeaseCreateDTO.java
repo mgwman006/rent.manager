@@ -3,8 +3,7 @@ package tz.tante.rent.manager.models.dtos.requests.leases;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import tz.tante.rent.manager.enums.PaymentPeriod;
-import tz.tante.rent.manager.enums.RentPeriod;
+import tz.tante.rent.manager.enums.RentFrequency;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -40,8 +39,8 @@ public record LeaseCreateDTO(
   String currency,
 
   @NotNull(message = "Rent period cannot be null")
-  RentPeriod rentPeriod,
+  RentFrequency rentFrequency,
 
-  @NotNull(message = "Payment period cannot be null")
-  PaymentPeriod paymentPeriod
+  @NotNull(message = "Full lease payment requirement cannot be null")
+  boolean fullLeasePaymentRequired
 ) {}

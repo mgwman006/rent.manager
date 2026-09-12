@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import tz.tante.rent.manager.enums.LeaseStatus;
-import tz.tante.rent.manager.enums.PaymentPeriod;
-import tz.tante.rent.manager.enums.RentPeriod;
+import tz.tante.rent.manager.enums.RentFrequency;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,20 +33,10 @@ public class Lease extends BaseEntity
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private RentPeriod rentPeriod;
+  private RentFrequency rentFrequency;
 
-  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private PaymentPeriod paymentPeriod;
-
-  @Column(nullable = false, precision = 12, scale = 2)
-  private BigDecimal paymentAmount;
-
-  @Column(nullable = false, precision = 12, scale = 2)
-  private BigDecimal amountPaid = BigDecimal.ZERO;
-
-  @Column(nullable = false, precision = 12, scale = 2)
-  private BigDecimal balance;
+  private boolean fullLeasePaymentRequired;
 
   @Column(nullable = false)
   private String currency;
@@ -61,9 +50,9 @@ public class Lease extends BaseEntity
   @Column(nullable = true)
   private Long tenantId;
 
-  @ManyToOne
-  @JoinColumn(name = "rental_profile_id")
-  RentalProfile rentalProfile;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "rental_profile_id", nullable = false)
+  private RentalProfile rentalProfile;
 
   @OneToMany(
     mappedBy = "lease",
@@ -83,14 +72,6 @@ public class Lease extends BaseEntity
   {
     tenantInvitations.add(invitation);
     invitation.setLease(this);
-  }
-
-  public boolean isActive()
-  {
-    LocalDate today = LocalDate.now();
-    return status == LeaseStatus.ACTIVE
-      && !today.isBefore(startDate)
-      && !today.isAfter(endDate);
   }
 
 }

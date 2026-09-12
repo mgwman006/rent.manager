@@ -8,7 +8,6 @@ import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.TenantInvitationStatus;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.models.dtos.requests.tenantinvitation.TenantInvitationCreateDTO;
-import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.TenantInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.Lease;
 import tz.tante.rent.manager.models.entities.Tenant;
@@ -21,7 +20,6 @@ import static tz.tante.rent.manager.utilities.Constant.TENANT_NOT_FOUND_BY_TOKEN
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,30 +32,6 @@ public class TenantInvitationService
   private final TenantInvitationRepository tenantInvitationRepository;
   private final LeaseRepository leaseRepository;
   private final TenantRepository tenantRepository;
-
-  public LeaseDetailsDTO getLeaseDetails(UUID invitationToken)
-  {
-    TenantInvitation invitation = tenantInvitationRepository.findByToken(invitationToken)
-      .orElseThrow(() -> new ResourceNotFoundException(TENANT_NOT_FOUND_BY_TOKEN_MESSAGE + invitationToken));
-
-    Lease lease = invitation.getLease();
-    return new LeaseDetailsDTO(
-      lease.getReferenceNumber(),
-      lease.getId(),
-      lease.getStartDate().toString(),
-      lease.getEndDate().toString(),
-      lease.getRentAmount(),
-      lease.getCurrency(),
-      lease.getRentPeriod(),
-      lease.getPaymentPeriod(),
-      lease.getPaymentAmount(),
-      lease.getAmountPaid(),
-      lease.getBalance(),
-      lease.getStatus().name(),
-      null,
-      new ArrayList<>()
-    );
-  }
 
   public TenantInvitationDetailsDTO createTenantInvitation(TenantInvitationCreateDTO request)
   {

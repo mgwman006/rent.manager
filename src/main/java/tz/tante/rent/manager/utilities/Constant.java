@@ -16,4 +16,5 @@ public class Constant
   public static final String UNAUTHORIZED_MESSAGE = "UNAUTHORIZED";
   public static final String BEARER_AUTH = "bearerAuth";
   public static final String TENANT_NOT_FOUND_BY_TOKEN_MESSAGE = "Tenant invitation not found with token: ";
+  public static final String NOT_FOUND = " not found";
 }

@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tz.tante.rent.manager.enums.LeaseStatus;
-import tz.tante.rent.manager.enums.PaymentPeriod;
-import tz.tante.rent.manager.enums.RentPeriod;
+import tz.tante.rent.manager.enums.PaymentStatus;
+import tz.tante.rent.manager.enums.RentFrequency;
 import tz.tante.rent.manager.enums.TenantInvitationStatus;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
@@ -19,9 +19,14 @@ import tz.tante.rent.manager.repositories.RentalProfileRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+
+import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
 
 @Service
 @AllArgsConstructor
@@ -60,7 +65,7 @@ public class LeaseService
   public LeaseDetailsDTO createLease(LeaseCreateDTO leaseCreateDTO)
   {
     RentalProfile rentalProfile = rentalProfileRepository.findById(leaseCreateDTO.rentalProfileId())
-      .orElseThrow(() -> new ResourceNotFoundException("Rental profile with id " + leaseCreateDTO.rentalProfileId() + " not found"));
+      .orElseThrow(() -> new ResourceNotFoundException("Rental profile with id " + leaseCreateDTO.rentalProfileId() + NOT_FOUND));
 
     int currentYear = LocalDateTime.now(ZoneId.of("UTC")).getYear();
     LeaseSequence leaseSequence = leaseSequenceRepository.findForUpdate(rentalProfile.getId(), currentYear)
@@ -69,21 +74,13 @@ public class LeaseService
     Long nextSequence = leaseSequence.getLastSequence() + 1;
     leaseSequence.setLastSequence(nextSequence);
 
-    BigDecimal paymentAmount = getPaymentAmount(leaseCreateDTO.rentAmount(), leaseCreateDTO.rentPeriod(), leaseCreateDTO.paymentPeriod());
-    BigDecimal amountPaid = BigDecimal.ZERO;
-    BigDecimal balance = paymentAmount.subtract(amountPaid);
-
-
     Lease lease = new Lease();
     lease.setStartDate(leaseCreateDTO.startDate());
     lease.setEndDate(leaseCreateDTO.endDate());
     lease.setRentAmount(leaseCreateDTO.rentAmount());
     lease.setCurrency(leaseCreateDTO.currency());
-    lease.setRentPeriod(leaseCreateDTO.rentPeriod());
-    lease.setPaymentPeriod(leaseCreateDTO.paymentPeriod());
-    lease.setPaymentAmount(paymentAmount);
-    lease.setAmountPaid(amountPaid);
-    lease.setBalance(balance);
+    lease.setRentFrequency(leaseCreateDTO.rentFrequency());
+    lease.setFullLeasePaymentRequired(leaseCreateDTO.fullLeasePaymentRequired());
     lease.setStatus(LeaseStatus.PENDING);
     lease.setReferenceNumber(String.format("LS-RP%d-%d-%06d", rentalProfile.getId(), currentYear, nextSequence));
     lease.setUnitId(leaseCreateDTO.unitId());
@@ -94,7 +91,7 @@ public class LeaseService
     if (leaseCreateDTO.tenantId() != null)
     {
       Tenant tenant = tenantRepository.findById(leaseCreateDTO.tenantId())
-        .orElseThrow(() -> new ResourceNotFoundException("Tenant with id " + leaseCreateDTO.tenantId() + " not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Tenant with id " + leaseCreateDTO.tenantId() + NOT_FOUND));
       lease.setTenantId(tenant.getId());
     }
     else
@@ -139,6 +136,21 @@ public class LeaseService
       .map(invitation -> mapTenantInvitationToDTO(lease.getId(), invitation))
       .toList();
 
+    BigDecimal totalPaymentAmount = getTotalPaymentAmount(
+      lease.getRentAmount(),
+      lease.getRentFrequency(),
+      lease.getStartDate(),
+      lease.getEndDate()
+    );
+
+    BigDecimal amountPaid = lease.getPayments()
+      .stream()
+      .filter(payment -> payment.getStatus() == PaymentStatus.COMPLETED)
+      .map(Payment::getAmount)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal balance = totalPaymentAmount.subtract(amountPaid);
+
     return new LeaseDetailsDTO(
       lease.getReferenceNumber(),
       lease.getId(),
@@ -146,11 +158,11 @@ public class LeaseService
       lease.getEndDate().toString(),
       lease.getRentAmount(),
       lease.getCurrency(),
-      lease.getRentPeriod(),
-      lease.getPaymentPeriod(),
-      lease.getPaymentAmount(),
-      lease.getAmountPaid(),
-      lease.getBalance(),
+      lease.getRentFrequency(),
+      lease.isFullLeasePaymentRequired(),
+      totalPaymentAmount,
+      amountPaid,
+      balance,
       lease.getStatus().name(),
       tenant != null ? new TenantDetailsDTO(
         tenant.getId(),
@@ -170,64 +182,34 @@ public class LeaseService
     // This could involve sending an email or SMS with a link to create an account
   }
 
-  private BigDecimal getPaymentAmount(BigDecimal rentAmount, RentPeriod rentPeriod, PaymentPeriod paymentPeriod)
-  {
-    int multiplier = 1;
-
-    switch (rentPeriod)
-    {
-      case DAILY -> {
-        switch (paymentPeriod)
-        {
-          case DAILY -> multiplier = 1;
-          case WEEKLY -> multiplier = 7;
-          case MONTHLY -> multiplier = 30;
-          case YEARLY -> multiplier = 365;
-          default -> throw new IllegalArgumentException("Invalid payment period for daily rent period");
-        }
-      }
-
-      case WEEKLY -> {
-        switch (paymentPeriod)
-        {
-          case WEEKLY -> multiplier = 1;
-          case MONTHLY -> multiplier = 4;
-          case YEARLY -> multiplier = 52;
-          default -> throw new IllegalArgumentException("Invalid payment period for weekly rent period");
-        }
-      }
-
-      case MONTHLY -> {
-        switch (paymentPeriod)
-        {
-          case MONTHLY -> multiplier = 1;
-          case SIX_MONTHS -> multiplier = 6;
-          case YEARLY -> multiplier = 12;
-          default -> throw new IllegalArgumentException("Invalid payment period for monthly rent period");
-        }
-      }
-
-      case SIX_MONTHS -> {
-        switch (paymentPeriod)
-        {
-          case SIX_MONTHS -> multiplier = 1;
-          case YEARLY -> multiplier = 2;
-          default -> throw new IllegalArgumentException("Invalid payment period for six months rent period");
-        }
-      }
-
-      case YEARLY -> {
-        switch (paymentPeriod)
-        {
-          case YEARLY -> multiplier = 1;
-          default -> throw new IllegalArgumentException("Invalid payment period for yearly rent period");
-        }
-      }
-
-      default -> throw new IllegalArgumentException("Invalid rent period");
+  private BigDecimal getTotalPaymentAmount(
+    BigDecimal rentAmount,
+    RentFrequency rentFrequency,
+    LocalDate startDate,
+    LocalDate endDate
+  ) {
+    if (startDate.isAfter(endDate)) {
+      throw new IllegalArgumentException("Start date cannot be after end date");
     }
 
-    return rentAmount.multiply(BigDecimal.valueOf(multiplier)).setScale(2, BigDecimal.ROUND_HALF_UP);
+    long periods = switch (rentFrequency) {
+      case DAILY -> ChronoUnit.DAYS.between(startDate, endDate) + 1;
+
+      case WEEKLY -> ChronoUnit.WEEKS.between(startDate, endDate) + 1;
+
+      case MONTHLY -> ChronoUnit.MONTHS.between(
+        YearMonth.from(startDate),
+        YearMonth.from(endDate)
+      ) + 1;
+
+      case YEARLY -> ChronoUnit.YEARS.between(
+        startDate,
+        endDate
+      ) + 1;
+    };
+
+    return rentAmount
+      .multiply(BigDecimal.valueOf(periods));
   }
 
   private TenantInvitationDetailsDTO mapTenantInvitationToDTO(Long leaseId, TenantInvitation invitation) {

@@ -7,7 +7,7 @@ import tz.tante.rent.manager.enums.PaymentStatus;
 import tz.tante.rent.manager.enums.PaymentType;
 import tz.tante.rent.manager.enums.PaymentMethod;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -17,12 +17,13 @@ import java.util.UUID;
 public class Payment extends BaseEntity
 {
   @Column(nullable = false)
-  private String referenceId = UUID.randomUUID().toString();
+  private String referenceNumber = UUID.randomUUID().toString();
 
   @Column(nullable = false, precision = 12, scale = 2)
   private BigDecimal amount;
 
-  private LocalDate paymentDate;
+  @Column(nullable = false)
+  private LocalDateTime paymentDate;
 
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
