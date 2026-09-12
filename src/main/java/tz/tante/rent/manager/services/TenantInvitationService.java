@@ -40,6 +40,11 @@ public class TenantInvitationService
     Lease lease = leaseRepository.findById(request.leaseId())
       .orElseThrow(() -> new ResourceNotFoundException("Lease not found with id: " + request.leaseId()));
 
+    if (lease.getStatus() != LeaseStatus.PENDING || lease.getTenantId() != null)
+    {
+      throw new ResourceExistException("Cannot create tenant invitation for a lease that is not in a pending state or already has a tenant assigned.");
+    }
+
     TenantInvitation tenantInvitation = new TenantInvitation();
     tenantInvitation.setFirstName(request.firstName());
     tenantInvitation.setLastName(request.lastName());
@@ -65,6 +70,12 @@ public class TenantInvitationService
       throw new ResourceExistException("Tenant invitation has already been processed.");
     }
 
+    Lease lease = invitation.getLease();
+    if (lease.getStatus() != LeaseStatus.PENDING || lease.getTenantId() != null)
+    {
+      throw new ResourceExistException("Lease is not in a pending state"+(lease.getTenantId() != null ? " and tenant already assigned." : ""));
+    }
+
     Tenant tenant = tenantRepository.findByUserId(userId).orElse(null);
     if (tenant == null)
     {
@@ -86,7 +97,6 @@ public class TenantInvitationService
     }
 
 
-    Lease lease = invitation.getLease();
     lease.setTenantId(tenant.getId());
     lease.setStatus(LeaseStatus.ACTIVE);
     leaseRepository.save(lease);
