@@ -1,10 +1,10 @@
 package tz.tante.rent.manager.models.dtos.responses;
 
-import tz.tante.rent.manager.enums.TenantInvitationStatus;
+import tz.tante.rent.manager.enums.LeaseInvitationStatus;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record TenantInvitationDetailsDTO(
+public record LeaseInvitationDetailsDTO(
   Long leaseId,
   Long id,
   String firstName,
@@ -12,7 +12,7 @@ public record TenantInvitationDetailsDTO(
   String phoneNumber,
   String email,
   UUID invitationToken,
-  TenantInvitationStatus status,
+  LeaseInvitationStatus status,
   LocalDateTime expiresAt,
   LocalDateTime acceptedAt,
   LocalDateTime sentAt

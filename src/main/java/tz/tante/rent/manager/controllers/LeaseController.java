@@ -19,10 +19,18 @@ public class LeaseController
 {
   private final LeaseService leaseService;
 
-  @PostMapping
-  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLease(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
+  @PostMapping("/landlord")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLeaseByLandlord(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
   {
-    LeaseDetailsDTO leaseDetails = leaseService.createLease(leaseCreateDTO);
+    LeaseDetailsDTO leaseDetails = leaseService.createLeaseInitiatedByLandlord(leaseCreateDTO);
+    return ResponseEntity.status(HttpStatus.CREATED)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
+  }
+
+  @PostMapping("/tenant")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLeaseByTenant(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
+  {
+    LeaseDetailsDTO leaseDetails = leaseService.createLeaseInitiatedByTenant(leaseCreateDTO);
     return ResponseEntity.status(HttpStatus.CREATED)
       .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
   }

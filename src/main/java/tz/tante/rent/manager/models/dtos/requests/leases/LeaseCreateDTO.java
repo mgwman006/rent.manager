@@ -17,14 +17,17 @@ public record LeaseCreateDTO(
 
   Long tenantId,
 
-  @NotBlank(message = "Tenant first name cannot be null")
   String tenantFirstName,
 
-  @NotBlank(message = "Tenant last name cannot be null")
   String tenantLastName,
 
-  @NotBlank(message = "Tenant phone number cannot be null")
   String tenantPhoneNumber,
+
+  String landlordFirstName,
+
+  String landlordLastName,
+
+  String landlordPhoneNumber,
 
   @NotNull(message = "Start date cannot be null")
   LocalDate startDate,

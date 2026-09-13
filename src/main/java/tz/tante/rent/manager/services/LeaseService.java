@@ -1,17 +1,16 @@
 package tz.tante.rent.manager.services;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tz.tante.rent.manager.enums.LeaseStatus;
-import tz.tante.rent.manager.enums.PaymentStatus;
-import tz.tante.rent.manager.enums.RentFrequency;
-import tz.tante.rent.manager.enums.TenantInvitationStatus;
+import tz.tante.rent.manager.enums.*;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
+import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
-import tz.tante.rent.manager.models.dtos.responses.TenantInvitationDetailsDTO;
+import tz.tante.rent.manager.models.dtos.responses.LeaseInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.*;
 import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.LeaseSequenceRepository;
@@ -62,29 +61,20 @@ public class LeaseService
   }
 
   @Transactional
-  public LeaseDetailsDTO createLease(LeaseCreateDTO leaseCreateDTO)
+  public LeaseDetailsDTO createLeaseInitiatedByLandlord(LeaseCreateDTO leaseCreateDTO)
   {
     RentalProfile rentalProfile = rentalProfileRepository.findById(leaseCreateDTO.rentalProfileId())
       .orElseThrow(() -> new ResourceNotFoundException("Rental profile with id " + leaseCreateDTO.rentalProfileId() + NOT_FOUND));
 
     int currentYear = LocalDateTime.now(ZoneId.of("UTC")).getYear();
-    LeaseSequence leaseSequence = leaseSequenceRepository.findForUpdate(rentalProfile.getId(), currentYear)
-      .orElseGet(() -> createSequence(rentalProfile.getId(),currentYear));
+    LeaseSequence leaseSequence = leaseSequenceRepository.findForUpdate(currentYear)
+      .orElseGet(() -> createSequence(currentYear));
 
     Long nextSequence = leaseSequence.getLastSequence() + 1;
     leaseSequence.setLastSequence(nextSequence);
 
-    Lease lease = new Lease();
-    lease.setStartDate(leaseCreateDTO.startDate());
-    lease.setEndDate(leaseCreateDTO.endDate());
-    lease.setRentAmount(leaseCreateDTO.rentAmount());
-    lease.setCurrency(leaseCreateDTO.currency());
-    lease.setRentFrequency(leaseCreateDTO.rentFrequency());
-    lease.setFullLeasePaymentRequired(leaseCreateDTO.fullLeasePaymentRequired());
-    lease.setStatus(LeaseStatus.PENDING);
-    lease.setReferenceNumber(String.format("LS-RP%d-%d-%06d", rentalProfile.getId(), currentYear, nextSequence));
-    lease.setUnitId(leaseCreateDTO.unitId());
-    lease.setTenantId(null);
+    Lease lease = createLeaseFromDTO(leaseCreateDTO, LeaseInitiator.LANDLORD);
+    lease.setReferenceNumber(String.format("LS-YR%d-%06d", currentYear, nextSequence));
 
     rentalProfile.addLease(lease);
 
@@ -98,24 +88,70 @@ public class LeaseService
     {
       //sendInvitationToTenant(leaseCreateDTO.tenantFirstName(), leaseCreateDTO.tenantLastName(), leaseCreateDTO.tenantPhoneNumber());
 
-      TenantInvitation tenantInvitation = new TenantInvitation();
-      tenantInvitation.setFirstName(leaseCreateDTO.tenantFirstName());
-      tenantInvitation.setLastName(leaseCreateDTO.tenantLastName());
-      tenantInvitation.setPhoneNumber(leaseCreateDTO.tenantPhoneNumber());
-      tenantInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
-      tenantInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
-      tenantInvitation.setStatus(TenantInvitationStatus.PENDING);
-      lease.addTenantInvitation(tenantInvitation);
+      LeaseInvitation leaseInvitation = new LeaseInvitation();
+      leaseInvitation.setFirstName(leaseCreateDTO.tenantFirstName());
+      leaseInvitation.setLastName(leaseCreateDTO.tenantLastName());
+      leaseInvitation.setPhoneNumber(leaseCreateDTO.tenantPhoneNumber());
+      leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
+      leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
+      leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+      lease.addInvitation(leaseInvitation);
     }
 
     Lease savedLease = leaseRepository.save(lease);
     return getLeaseDetailsDTO(savedLease);
   }
 
-  private LeaseSequence createSequence(Long rentalProfileId, int currentYear)
+  @Transactional
+  public LeaseDetailsDTO createLeaseInitiatedByTenant(LeaseCreateDTO leaseCreateDTO)
+  {
+    if (StringUtils.isBlank(leaseCreateDTO.landlordPhoneNumber()))
+    {
+      throw new TanteException("Landlord phone number is required when creating a lease initiated by tenant.");
+    }
+
+    Tenant tenant = tenantRepository.findById(leaseCreateDTO.tenantId())
+      .orElseThrow(() -> new ResourceNotFoundException("Tenant with id " + leaseCreateDTO.tenantId() + NOT_FOUND));
+
+    int currentYear = LocalDateTime.now(ZoneId.of("UTC")).getYear();
+    LeaseSequence leaseSequence = leaseSequenceRepository.findForUpdate(currentYear)
+      .orElseGet(() -> createSequence(currentYear));
+
+    Long nextSequence = leaseSequence.getLastSequence() + 1;
+    leaseSequence.setLastSequence(nextSequence);
+
+    Lease lease = createLeaseFromDTO(leaseCreateDTO, LeaseInitiator.TENANT);
+    lease.setReferenceNumber(String.format("LS-YR%d-%06d", currentYear, nextSequence));
+
+
+    RentalProfile rentalProfile = rentalProfile = rentalProfileRepository.findByPhoneNumber(leaseCreateDTO.landlordPhoneNumber())
+        .orElse(null);
+
+    if (rentalProfile != null)
+    {
+      rentalProfile.addLease(lease);
+    }
+    else
+    {
+      //sendInvitationToTenant(leaseCreateDTO.tenantFirstName(), leaseCreateDTO.tenantLastName(), leaseCreateDTO.tenantPhoneNumber());
+
+      LeaseInvitation leaseInvitation = new LeaseInvitation();
+      leaseInvitation.setFirstName(leaseCreateDTO.landlordFirstName());
+      leaseInvitation.setLastName(leaseCreateDTO.landlordLastName());
+      leaseInvitation.setPhoneNumber(leaseCreateDTO.landlordPhoneNumber());
+      leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
+      leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
+      leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+      lease.addInvitation(leaseInvitation);
+    }
+
+    Lease savedLease = leaseRepository.save(lease);
+    return getLeaseDetailsDTO(savedLease);
+  }
+
+  private LeaseSequence createSequence(int currentYear)
   {
     LeaseSequence leaseSequence = new LeaseSequence();
-    leaseSequence.setRentalProfileId(rentalProfileId);
     leaseSequence.setYear(currentYear);
     leaseSequence.setLastSequence(0L);
     leaseSequence = leaseSequenceRepository.save(leaseSequence);
@@ -131,7 +167,7 @@ public class LeaseService
       tenant = tenantRepository.findById(lease.getTenantId()).orElse(null);
     }
 
-    List<TenantInvitationDetailsDTO> tenantInvitations = lease.getTenantInvitations()
+    List<LeaseInvitationDetailsDTO> tenantInvitations = lease.getInvitations()
       .stream()
       .map(invitation -> mapTenantInvitationToDTO(lease.getId(), invitation))
       .toList();
@@ -154,6 +190,7 @@ public class LeaseService
     return new LeaseDetailsDTO(
       lease.getReferenceNumber(),
       lease.getId(),
+      lease.getInitiatedBy(),
       lease.getStartDate().toString(),
       lease.getEndDate().toString(),
       lease.getRentAmount(),
@@ -212,8 +249,8 @@ public class LeaseService
       .multiply(BigDecimal.valueOf(periods));
   }
 
-  private TenantInvitationDetailsDTO mapTenantInvitationToDTO(Long leaseId, TenantInvitation invitation) {
-    return new TenantInvitationDetailsDTO(
+  private LeaseInvitationDetailsDTO mapTenantInvitationToDTO(Long leaseId, LeaseInvitation invitation) {
+    return new LeaseInvitationDetailsDTO(
       leaseId,
       invitation.getId(),
       invitation.getFirstName(),
@@ -233,5 +270,25 @@ public class LeaseService
     Lease lease = leaseRepository.findById(leaseId)
       .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + " not found"));
     return getLeaseDetailsDTO(lease);
+  }
+
+  private Lease createLeaseFromDTO(LeaseCreateDTO leaseCreateDTO, LeaseInitiator initiator)
+  {
+    Lease lease = new Lease();
+    lease.setInitiatedBy(initiator);
+    lease.setStartDate(leaseCreateDTO.startDate());
+    lease.setEndDate(leaseCreateDTO.endDate());
+    lease.setRentAmount(leaseCreateDTO.rentAmount());
+    lease.setCurrency(leaseCreateDTO.currency());
+    lease.setRentFrequency(leaseCreateDTO.rentFrequency());
+    lease.setFullLeasePaymentRequired(leaseCreateDTO.fullLeasePaymentRequired());
+    lease.setStatus(LeaseStatus.PENDING);
+    lease.setUnitId(leaseCreateDTO.unitId());
+
+    if (leaseCreateDTO.tenantId() != null)
+    {
+      lease.setTenantId(leaseCreateDTO.tenantId());
+    }
+    return lease;
   }
 }

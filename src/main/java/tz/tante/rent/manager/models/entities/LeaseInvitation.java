@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import tz.tante.rent.manager.enums.TenantInvitationStatus;
+import tz.tante.rent.manager.enums.LeaseInvitationStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,8 +13,8 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "tenant_invitations")
-public class TenantInvitation extends BaseEntity {
+@Table(name = "lease_invitations")
+public class LeaseInvitation extends BaseEntity {
 
   @Column(nullable = false, unique = true)
   private UUID token = UUID.randomUUID();
@@ -36,7 +36,7 @@ public class TenantInvitation extends BaseEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private TenantInvitationStatus status;
+  private LeaseInvitationStatus status;
 
   @Column(nullable = false)
   private LocalDateTime expiresAt;

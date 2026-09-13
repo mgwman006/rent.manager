@@ -3,6 +3,7 @@ package tz.tante.rent.manager.models.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import tz.tante.rent.manager.enums.LeaseInitiator;
 import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.RentFrequency;
 
@@ -50,6 +51,10 @@ public class Lease extends BaseEntity
   @Column(nullable = true)
   private Long tenantId;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private LeaseInitiator initiatedBy;
+
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "rental_profile_id", nullable = false)
   private RentalProfile rentalProfile;
@@ -66,11 +71,11 @@ public class Lease extends BaseEntity
     cascade = CascadeType.ALL,
     fetch = FetchType.LAZY
   )
-  private Set<TenantInvitation> tenantInvitations = new HashSet<>();
+  private Set<LeaseInvitation> invitations = new HashSet<>();
 
-  public void addTenantInvitation(TenantInvitation invitation)
+  public void addInvitation(LeaseInvitation invitation)
   {
-    tenantInvitations.add(invitation);
+    invitations.add(invitation);
     invitation.setLease(this);
   }
 

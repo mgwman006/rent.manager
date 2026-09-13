@@ -16,9 +16,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class LeaseSequence extends BaseEntity
 {
-  @Column(name = "rental_profile_id", nullable = false)
-  private Long rentalProfileId;
-
   @Column(nullable = false)
   private Integer year;
 

@@ -13,6 +13,6 @@ import java.util.Optional;
 public interface LeaseSequenceRepository extends JpaRepository<LeaseSequence, Long>
 {
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("SELECT s FROM LeaseSequence s WHERE s.rentalProfileId = :rentalProfileId AND s.year = :year")
-  Optional<LeaseSequence> findForUpdate(Long rentalProfileId, int year);
+  @Query("SELECT s FROM LeaseSequence s WHERE s.year = :year")
+  Optional<LeaseSequence> findForUpdate(int year);
 }

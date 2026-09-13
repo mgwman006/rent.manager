@@ -1,9 +1,9 @@
-package tz.tante.rent.manager.models.dtos.requests.tenantinvitation;
+package tz.tante.rent.manager.models.dtos.requests.leaseinvitation;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record TenantInvitationCreateDTO(
+public record LeaseInvitationCreateDTO(
   @NotNull(message = "Lease ID is required")
   Long leaseId,
 
