@@ -12,10 +12,12 @@ import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.models.dtos.requests.leaseinvitation.LeaseInvitationCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.Lease;
+import tz.tante.rent.manager.models.entities.RentalProfile;
 import tz.tante.rent.manager.models.entities.Tenant;
 import tz.tante.rent.manager.models.entities.LeaseInvitation;
 import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.LeaseInvitationRepository;
+import tz.tante.rent.manager.repositories.RentalProfileRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
 import static tz.tante.rent.manager.utilities.Constant.TENANT_NOT_FOUND_BY_TOKEN_MESSAGE;
 
@@ -34,6 +36,7 @@ public class LeaseInvitationService
   private final LeaseInvitationRepository leaseInvitationRepository;
   private final LeaseRepository leaseRepository;
   private final TenantRepository tenantRepository;
+  private final RentalProfileRepository rentalProfileRepository;
 
   public LeaseInvitationDetailsDTO createInvitation(LeaseInvitationCreateDTO request)
   {
@@ -67,7 +70,7 @@ public class LeaseInvitationService
 
     if (invitation.getStatus() != LeaseInvitationStatus.PENDING)
     {
-      throw new ResourceExistException("Tenant invitation has already been processed.");
+      throw new ResourceExistException("Lease invitation has already been processed.");
     }
 
     Lease lease = invitation.getLease();
@@ -98,6 +101,36 @@ public class LeaseInvitationService
 
 
     lease.setTenantId(tenant.getId());
+    lease.setStatus(LeaseStatus.ACTIVE);
+    leaseRepository.save(lease);
+
+    invitation.setStatus(LeaseInvitationStatus.ACCEPTED);
+    invitation.setAcceptedAt(LocalDateTime.now(ZoneId.of("UTC")));
+    leaseInvitationRepository.save(invitation);
+  }
+
+  @Transactional
+  public void landlordAcceptInvitationInitiatedByTenant(UUID invitationToken, Long id)
+  {
+    LeaseInvitation invitation = leaseInvitationRepository.findByToken(invitationToken)
+      .orElseThrow(() -> new ResourceNotFoundException(TENANT_NOT_FOUND_BY_TOKEN_MESSAGE + invitationToken));
+
+    if (invitation.getStatus() != LeaseInvitationStatus.PENDING)
+    {
+      throw new ResourceExistException("Lease invitation has already been processed.");
+    }
+
+    Lease lease = invitation.getLease();
+    if (lease.getStatus() != LeaseStatus.PENDING || lease.getTenantId() != null)
+    {
+      throw new ResourceExistException("Lease is not in a pending state"+(lease.getRentalProfile() != null ? " and landlord already assigned." : ""));
+    }
+
+    RentalProfile rentalProfile = rentalProfileRepository.findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Rental profile not found with id: " + id));
+
+
+    rentalProfile.addLease(lease);
     lease.setStatus(LeaseStatus.ACTIVE);
     leaseRepository.save(lease);
 

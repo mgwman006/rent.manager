@@ -18,11 +18,11 @@ import lombok.Setter;
 )
 public class Tenant extends BaseEntity
 {
-  @Column(name = "user_id", nullable = false)
+  @Column(name = "user_id", nullable = false, unique = true)
   private Long userId;
   private String firstName;
   private String lastName;
   private String email;
-  @Column(name = "phone_number", nullable = false)
+  @Column(name = "phone_number", nullable = false, unique = true)
   private String phoneNumber;
 }

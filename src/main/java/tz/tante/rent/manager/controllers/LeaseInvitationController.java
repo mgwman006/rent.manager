@@ -38,11 +38,19 @@ public class LeaseInvitationController
     }
 
     @PostMapping("/{invitationToken}/tenant/accept")
-    public ResponseEntity<ApiResponse<Void>> acceptInvitation(@PathVariable UUID invitationToken, @RequestParam Long userId)
+    public ResponseEntity<ApiResponse<Void>> tenantAcceptInvitation(@PathVariable UUID invitationToken, @RequestParam Long userId)
     {
         leaseInvitationService.tenantAcceptInvitationInitiatedByLandlord(invitationToken, userId);
         return ResponseEntity.status(200)
                 .body(ApiResponse.success(null, 200));
+    }
+
+    @PostMapping("/{invitationToken}/landlord/accept")
+    public ResponseEntity<ApiResponse<Void>> landlordAcceptInvitation(@PathVariable UUID invitationToken, @RequestParam Long landlordId)
+    {
+        leaseInvitationService.landlordAcceptInvitationInitiatedByTenant(invitationToken, landlordId);
+        return ResponseEntity.status(200)
+          .body(ApiResponse.success(null, 200));
     }
 
     @GetMapping("/phone/{phoneNumber}")
