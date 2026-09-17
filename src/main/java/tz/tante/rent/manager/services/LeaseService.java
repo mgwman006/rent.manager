@@ -78,25 +78,16 @@ public class LeaseService
 
     rentalProfile.addLease(lease);
 
-    if (leaseCreateDTO.tenantId() != null)
-    {
-      Tenant tenant = tenantRepository.findById(leaseCreateDTO.tenantId())
-        .orElseThrow(() -> new ResourceNotFoundException("Tenant with id " + leaseCreateDTO.tenantId() + NOT_FOUND));
-      lease.setTenantId(tenant.getId());
-    }
-    else
-    {
-      //sendInvitationToTenant(leaseCreateDTO.tenantFirstName(), leaseCreateDTO.tenantLastName(), leaseCreateDTO.tenantPhoneNumber());
 
-      LeaseInvitation leaseInvitation = new LeaseInvitation();
-      leaseInvitation.setFirstName(leaseCreateDTO.tenantFirstName());
-      leaseInvitation.setLastName(leaseCreateDTO.tenantLastName());
-      leaseInvitation.setPhoneNumber(leaseCreateDTO.tenantPhoneNumber());
-      leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
-      leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
-      leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
-      lease.addInvitation(leaseInvitation);
-    }
+    //sendInvitationToTenant(leaseCreateDTO.tenantFirstName(), leaseCreateDTO.tenantLastName(), leaseCreateDTO.tenantPhoneNumber());
+    LeaseInvitation leaseInvitation = new LeaseInvitation();
+    leaseInvitation.setFirstName(leaseCreateDTO.tenantFirstName());
+    leaseInvitation.setLastName(leaseCreateDTO.tenantLastName());
+    leaseInvitation.setPhoneNumber(leaseCreateDTO.tenantPhoneNumber());
+    leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
+    leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
+    leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+    lease.addInvitation(leaseInvitation);
 
     Lease savedLease = leaseRepository.save(lease);
     return getLeaseDetailsDTO(savedLease);
@@ -123,27 +114,16 @@ public class LeaseService
     Lease lease = createLeaseFromDTO(leaseCreateDTO, LeaseInitiator.TENANT);
     lease.setReferenceNumber(String.format("LS-YR%d-%06d", currentYear, nextSequence));
 
+    //sendInvitationToTenant(leaseCreateDTO.tenantFirstName(), leaseCreateDTO.tenantLastName(), leaseCreateDTO.tenantPhoneNumber());
+    LeaseInvitation leaseInvitation = new LeaseInvitation();
+    leaseInvitation.setFirstName(leaseCreateDTO.landlordFirstName());
+    leaseInvitation.setLastName(leaseCreateDTO.landlordLastName());
+    leaseInvitation.setPhoneNumber(leaseCreateDTO.landlordPhoneNumber());
+    leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
+    leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
+    leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+    lease.addInvitation(leaseInvitation);
 
-    RentalProfile rentalProfile = rentalProfile = rentalProfileRepository.findByPhoneNumber(leaseCreateDTO.landlordPhoneNumber())
-        .orElse(null);
-
-    if (rentalProfile != null)
-    {
-      rentalProfile.addLease(lease);
-    }
-    else
-    {
-      //sendInvitationToTenant(leaseCreateDTO.tenantFirstName(), leaseCreateDTO.tenantLastName(), leaseCreateDTO.tenantPhoneNumber());
-
-      LeaseInvitation leaseInvitation = new LeaseInvitation();
-      leaseInvitation.setFirstName(leaseCreateDTO.landlordFirstName());
-      leaseInvitation.setLastName(leaseCreateDTO.landlordLastName());
-      leaseInvitation.setPhoneNumber(leaseCreateDTO.landlordPhoneNumber());
-      leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
-      leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
-      leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
-      lease.addInvitation(leaseInvitation);
-    }
 
     Lease savedLease = leaseRepository.save(lease);
     return getLeaseDetailsDTO(savedLease);
@@ -282,7 +262,7 @@ public class LeaseService
     lease.setCurrency(leaseCreateDTO.currency());
     lease.setRentFrequency(leaseCreateDTO.rentFrequency());
     lease.setFullLeasePaymentRequired(leaseCreateDTO.fullLeasePaymentRequired());
-    lease.setStatus(LeaseStatus.PENDING);
+    lease.setStatus(initiator == LeaseInitiator.LANDLORD ? LeaseStatus.PENDING_TENANT_APPROVAL : LeaseStatus.PENDING_LANDLORD_APPROVAL);
     lease.setUnitId(leaseCreateDTO.unitId());
 
     if (leaseCreateDTO.tenantId() != null)

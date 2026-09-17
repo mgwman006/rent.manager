@@ -43,9 +43,9 @@ public class LeaseInvitationService
     Lease lease = leaseRepository.findById(request.leaseId())
       .orElseThrow(() -> new ResourceNotFoundException("Lease not found with id: " + request.leaseId()));
 
-    if (lease.getStatus() != LeaseStatus.PENDING || lease.getTenantId() != null)
+    if (lease.getStatus() != LeaseStatus.PENDING_LANDLORD_APPROVAL && lease.getStatus() != LeaseStatus.PENDING_TENANT_APPROVAL)
     {
-      throw new ResourceExistException("Cannot create tenant invitation for a lease that is not in a pending state or already has a tenant assigned.");
+      throw new ResourceExistException("Cannot create invitation for a lease that is not in a pending state or already has a tenant assigned.");
     }
 
     LeaseInvitation leaseInvitation = new LeaseInvitation();
@@ -74,7 +74,7 @@ public class LeaseInvitationService
     }
 
     Lease lease = invitation.getLease();
-    if (lease.getStatus() != LeaseStatus.PENDING || lease.getTenantId() != null)
+    if (lease.getStatus() != LeaseStatus.PENDING_TENANT_APPROVAL || lease.getTenantId() != null)
     {
       throw new ResourceExistException("Lease is not in a pending state"+(lease.getTenantId() != null ? " and tenant already assigned." : ""));
     }
@@ -121,7 +121,7 @@ public class LeaseInvitationService
     }
 
     Lease lease = invitation.getLease();
-    if (lease.getStatus() != LeaseStatus.PENDING || lease.getTenantId() != null)
+    if (lease.getStatus() != LeaseStatus.PENDING_LANDLORD_APPROVAL && lease.getStatus() != LeaseStatus.PENDING)
     {
       throw new ResourceExistException("Lease is not in a pending state"+(lease.getRentalProfile() != null ? " and landlord already assigned." : ""));
     }

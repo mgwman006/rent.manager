@@ -43,7 +43,7 @@ public class Lease extends BaseEntity
   private String currency;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = false, length = 20)
   private LeaseStatus status;
 
   private Long unitId;
