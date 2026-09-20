@@ -74,9 +74,9 @@ public class LeaseInvitationService
     }
 
     Lease lease = invitation.getLease();
-    if (lease.getStatus() != LeaseStatus.PENDING_TENANT_APPROVAL || lease.getTenantId() != null)
+    if (lease.getStatus() != LeaseStatus.PENDING_TENANT_APPROVAL || lease.getTenant() != null)
     {
-      throw new ResourceExistException("Lease is not in a pending state"+(lease.getTenantId() != null ? " and tenant already assigned." : ""));
+      throw new ResourceExistException("Lease is not in a pending state"+(lease.getTenant() != null ? " and tenant already assigned." : ""));
     }
 
     Tenant tenant = tenantRepository.findByUserId(userId).orElse(null);
@@ -100,7 +100,7 @@ public class LeaseInvitationService
     }
 
 
-    lease.setTenantId(tenant.getId());
+    lease.setTenant(tenant);
     lease.setStatus(LeaseStatus.ACTIVE);
     leaseRepository.save(lease);
 

@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,4 +28,13 @@ public class Tenant extends BaseEntity
   private String email;
   @Column(name = "phone_number", nullable = false, unique = true)
   private String phoneNumber;
+
+  @OneToMany(mappedBy = "tenant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<Lease> leases = new ArrayList<>();
+
+  public void addLease(Lease lease)
+  {
+    leases.add(lease);
+    lease.setTenant(this);
+  }
 }

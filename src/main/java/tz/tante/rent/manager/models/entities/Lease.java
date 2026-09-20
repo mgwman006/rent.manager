@@ -38,15 +38,16 @@ public class Lease extends BaseEntity
 
   private Long unitId;
 
-  @Column(nullable = true)
-  private Long tenantId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "tenant_id")
+  Tenant tenant;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private LeaseInitiator initiatedBy;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "rental_profile_id", nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "rental_profile_id")
   private RentalProfile rentalProfile;
 
   @ManyToOne(fetch = FetchType.LAZY)

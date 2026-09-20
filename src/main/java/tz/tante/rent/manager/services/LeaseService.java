@@ -138,11 +138,6 @@ public class LeaseService
 
   private LeaseDetailsDTO getLeaseDetailsDTO(Lease lease)
   {
-    Tenant tenant = null;
-    if (lease.getTenantId() != null)
-    {
-      tenant = tenantRepository.findById(lease.getTenantId()).orElse(null);
-    }
 
     List<LeaseInvitationDetailsDTO> tenantInvitations = lease.getInvitations()
       .stream()
@@ -165,13 +160,13 @@ public class LeaseService
       ) : null,
       lease.isFullLeasePaymentRequired(),
       lease.getStatus().name(),
-      tenant != null ? new TenantDetailsDTO(
-        tenant.getId(),
-        tenant.getUserId(),
-        tenant.getFirstName(),
-        tenant.getLastName(),
-        tenant.getEmail(),
-        tenant.getPhoneNumber()
+      lease.getTenant() != null ? new TenantDetailsDTO(
+        lease.getTenant().getId(),
+        lease.getTenant().getUserId(),
+        lease.getTenant().getFirstName(),
+        lease.getTenant().getLastName(),
+        lease.getTenant().getEmail(),
+        lease.getTenant().getPhoneNumber()
       ) : null,
       tenantInvitations
     );
@@ -215,7 +210,9 @@ public class LeaseService
 
     if (leaseCreateDTO.tenantId() != null)
     {
-      lease.setTenantId(leaseCreateDTO.tenantId());
+      Tenant tenant = tenantRepository.findById(leaseCreateDTO.tenantId()).orElse(null);
+      lease.setTenant(tenant);
+      tenant.getLeases().add(lease);
     }
 
     Rent rent = rentRepository.findById(leaseCreateDTO.rent().id())
