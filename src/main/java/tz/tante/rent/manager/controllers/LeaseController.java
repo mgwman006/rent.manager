@@ -46,6 +46,14 @@ public class LeaseController
       .body(ApiResponse.success(leases, HttpStatus.OK.value()));
   }
 
+  @GetMapping
+  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getAllLeases()
+  {
+    List<LeaseDetailsDTO> leases = leaseService.getAllLeases();
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leases, HttpStatus.OK.value()));
+  }
+
   @GetMapping("/{leaseId}")
   public ResponseEntity<ApiResponse<LeaseDetailsDTO>> getLeaseById(@PathVariable Long leaseId)
   {

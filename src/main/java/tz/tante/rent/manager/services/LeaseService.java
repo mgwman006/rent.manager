@@ -10,13 +10,11 @@ import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
+import tz.tante.rent.manager.models.dtos.responses.RentDTO;
 import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.*;
-import tz.tante.rent.manager.repositories.LeaseRepository;
-import tz.tante.rent.manager.repositories.LeaseSequenceRepository;
-import tz.tante.rent.manager.repositories.RentalProfileRepository;
-import tz.tante.rent.manager.repositories.TenantRepository;
+import tz.tante.rent.manager.repositories.*;
 import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
 
 
@@ -34,6 +32,7 @@ public class LeaseService
   private final RentalProfileRepository rentalProfileRepository;
   private final TenantRepository tenantRepository;
   private final LeaseSequenceRepository leaseSequenceRepository;
+  private final RentRepository rentRepository;
 
 
   public List<LeaseDetailsDTO> getActiveLeasesByTenant(Long tenantId)
@@ -100,7 +99,7 @@ public class LeaseService
       throw new TanteException("Landlord phone number is required when creating a lease initiated by tenant.");
     }
 
-    Tenant tenant = tenantRepository.findById(leaseCreateDTO.tenantId())
+    tenantRepository.findById(leaseCreateDTO.tenantId())
       .orElseThrow(() -> new ResourceNotFoundException("Tenant with id " + leaseCreateDTO.tenantId() + NOT_FOUND));
 
     int currentYear = LocalDateTime.now(ZoneId.of("UTC")).getYear();
@@ -157,9 +156,13 @@ public class LeaseService
       lease.getInitiatedBy(),
       lease.getStartDate().toString(),
       lease.getEndDate().toString(),
-      lease.getRentAmount(),
-      lease.getCurrency(),
-      lease.getRentFrequency(),
+      lease.getRent() != null ?
+      new RentDTO(
+        lease.getRent().getId(),
+        lease.getRent().getAmount(),
+        lease.getRent().getCurrency(),
+        lease.getRent().getFrequency().name()
+      ) : null,
       lease.isFullLeasePaymentRequired(),
       lease.getStatus().name(),
       tenant != null ? new TenantDetailsDTO(
@@ -201,13 +204,11 @@ public class LeaseService
 
   private Lease createLeaseFromDTO(LeaseCreateDTO leaseCreateDTO, LeaseInitiator initiator)
   {
+
     Lease lease = new Lease();
     lease.setInitiatedBy(initiator);
     lease.setStartDate(leaseCreateDTO.startDate());
     lease.setEndDate(leaseCreateDTO.endDate());
-    lease.setRentAmount(leaseCreateDTO.rentAmount());
-    lease.setCurrency(leaseCreateDTO.currency());
-    lease.setRentFrequency(leaseCreateDTO.rentFrequency());
     lease.setFullLeasePaymentRequired(leaseCreateDTO.fullLeasePaymentRequired());
     lease.setStatus(initiator == LeaseInitiator.LANDLORD ? LeaseStatus.PENDING_TENANT_APPROVAL : LeaseStatus.PENDING_LANDLORD_APPROVAL);
     lease.setUnitId(leaseCreateDTO.unitId());
@@ -216,6 +217,19 @@ public class LeaseService
     {
       lease.setTenantId(leaseCreateDTO.tenantId());
     }
+
+    Rent rent = rentRepository.findById(leaseCreateDTO.rent().id())
+      .orElse(null);
+
+    if (rent == null)
+    {
+      rent = new Rent();
+      rent.setAmount(leaseCreateDTO.rent().amount());
+      rent.setCurrency(leaseCreateDTO.rent().currency());
+      rent.setFrequency(leaseCreateDTO.rent().frequency());
+    }
+
+    rent.addLease(lease);
     return lease;
   }
 

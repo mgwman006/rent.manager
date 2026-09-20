@@ -31,18 +31,8 @@ public class Lease extends BaseEntity
   @Column(nullable = false)
   private LocalDate endDate;
 
-  @Column(nullable = false, precision = 12, scale = 2)
-  private BigDecimal rentAmount;
-
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private RentFrequency rentFrequency;
-
   @Column(nullable = false)
   private boolean fullLeasePaymentRequired;
-
-  @Column(nullable = false)
-  private String currency;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
@@ -60,6 +50,10 @@ public class Lease extends BaseEntity
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "rental_profile_id", nullable = false)
   private RentalProfile rentalProfile;
+
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "rent_id", nullable = false)
+  private Rent rent;
 
   @OneToMany(
     mappedBy = "lease",
