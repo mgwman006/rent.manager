@@ -10,6 +10,7 @@ import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.entities.Lease;
 import tz.tante.rent.manager.models.entities.PaymentBlock;
 import tz.tante.rent.manager.models.entities.PaymentTransaction;
+import tz.tante.rent.manager.models.entities.Rent;
 import tz.tante.rent.manager.repositories.LeaseRepository;
 
 import java.math.BigDecimal;
@@ -142,14 +143,13 @@ public class RentCalculator
 
     LocalDate currentStartDate = lease.getStartDate();
     LocalDate leaseEndDate = lease.getEndDate();
-    RentFrequency rentFrequency = lease.getRentFrequency();
-    BigDecimal rentAmount = lease.getRentAmount();
+    Rent rent = lease.getRent();
 
     while (!currentStartDate.isAfter(leaseEndDate)) {
-      LocalDate currentEndDate = calculateEndDate(currentStartDate, rentFrequency, leaseEndDate);
+      LocalDate currentEndDate = calculateEndDate(currentStartDate, rent.getFrequency(), leaseEndDate);
       PaymentBlock paymentBlock = new PaymentBlock();
       paymentBlock.setLease(lease);
-      paymentBlock.setAmount(rentAmount);
+      paymentBlock.setAmount(rent.getAmount());
       paymentBlock.setStartDate(currentStartDate);
       paymentBlock.setEndDate(currentEndDate);
       paymentBlock.setDueDate(currentEndDate); // Assuming due date is the same as end date
