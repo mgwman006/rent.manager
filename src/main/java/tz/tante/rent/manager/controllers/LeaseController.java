@@ -5,6 +5,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tz.tante.rent.manager.engines.rent.RentCalculator;
+import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
@@ -18,6 +20,7 @@ import java.util.List;
 public class LeaseController
 {
   private final LeaseService leaseService;
+  private final RentCalculator rentCalculator;
 
   @PostMapping("/landlord")
   public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLeaseByLandlord(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
@@ -57,5 +60,13 @@ public class LeaseController
     List<LeaseDetailsDTO> leases = leaseService.getActiveLeasesByTenant(tenantId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(leases, HttpStatus.OK.value()));
+  }
+
+  @GetMapping("/rent/summary/{leaseId}")
+  public ResponseEntity<ApiResponse<RentCollectionSummary>> getLeasePaymentStatus(@PathVariable Long leaseId)
+  {
+    RentCollectionSummary rentCollectionSummary = rentCalculator.getLeasePaymentStatus(leaseId);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(rentCollectionSummary, HttpStatus.OK.value()));
   }
 }

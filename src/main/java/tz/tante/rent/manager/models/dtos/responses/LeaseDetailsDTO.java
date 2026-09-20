@@ -1,9 +1,7 @@
 package tz.tante.rent.manager.models.dtos.responses;
 
 import tz.tante.rent.manager.enums.LeaseInitiator;
-import tz.tante.rent.manager.enums.LeaseInvitationStatus;
 import tz.tante.rent.manager.enums.RentFrequency;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -17,9 +15,6 @@ public record LeaseDetailsDTO(
   String currency,
   RentFrequency rentFrequency,
   boolean fullLeasePaymentRequired,
-  BigDecimal totalAmount,
-  BigDecimal amountPaid,
-  BigDecimal balance,
   String status,
   TenantDetailsDTO tenant,
   List<LeaseInvitationDetailsDTO> invitations)

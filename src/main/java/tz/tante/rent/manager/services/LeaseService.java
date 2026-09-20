@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tz.tante.rent.manager.engines.rent.RentCalculator;
 import tz.tante.rent.manager.enums.*;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
@@ -16,16 +17,14 @@ import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.LeaseSequenceRepository;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
+import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.YearMonth;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
 
 @Service
 @AllArgsConstructor
@@ -41,6 +40,7 @@ public class LeaseService
   {
     List<Lease> leases = leaseRepository.findByTenantIdAndStatus(tenantId, LeaseStatus.ACTIVE);
     return leases.stream()
+      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC"))))
       .map(this::getLeaseDetailsDTO)
       .toList();
   }
@@ -75,18 +75,17 @@ public class LeaseService
 
     Lease lease = createLeaseFromDTO(leaseCreateDTO, LeaseInitiator.LANDLORD);
     lease.setReferenceNumber(String.format("LS-YR%d-%06d", currentYear, nextSequence));
+    RentCalculator.generatePaymentBlocksForLease(lease);
 
     rentalProfile.addLease(lease);
 
 
-    //sendInvitationToTenant(leaseCreateDTO.tenantFirstName(), leaseCreateDTO.tenantLastName(), leaseCreateDTO.tenantPhoneNumber());
-    LeaseInvitation leaseInvitation = new LeaseInvitation();
-    leaseInvitation.setFirstName(leaseCreateDTO.tenantFirstName());
-    leaseInvitation.setLastName(leaseCreateDTO.tenantLastName());
-    leaseInvitation.setPhoneNumber(leaseCreateDTO.tenantPhoneNumber());
-    leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
-    leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
-    leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+    LeaseInvitation leaseInvitation = createLeaseInvitation(
+      leaseCreateDTO.tenantFirstName(),
+      leaseCreateDTO.tenantLastName(),
+      leaseCreateDTO.tenantPhoneNumber()
+    );
+
     lease.addInvitation(leaseInvitation);
 
     Lease savedLease = leaseRepository.save(lease);
@@ -113,15 +112,14 @@ public class LeaseService
 
     Lease lease = createLeaseFromDTO(leaseCreateDTO, LeaseInitiator.TENANT);
     lease.setReferenceNumber(String.format("LS-YR%d-%06d", currentYear, nextSequence));
+    RentCalculator.generatePaymentBlocksForLease(lease);
 
-    //sendInvitationToTenant(leaseCreateDTO.tenantFirstName(), leaseCreateDTO.tenantLastName(), leaseCreateDTO.tenantPhoneNumber());
-    LeaseInvitation leaseInvitation = new LeaseInvitation();
-    leaseInvitation.setFirstName(leaseCreateDTO.landlordFirstName());
-    leaseInvitation.setLastName(leaseCreateDTO.landlordLastName());
-    leaseInvitation.setPhoneNumber(leaseCreateDTO.landlordPhoneNumber());
-    leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
-    leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
-    leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+    LeaseInvitation leaseInvitation = createLeaseInvitation(
+      leaseCreateDTO.landlordFirstName(),
+      leaseCreateDTO.landlordLastName(),
+      leaseCreateDTO.landlordPhoneNumber()
+    );
+
     lease.addInvitation(leaseInvitation);
 
 
@@ -152,20 +150,6 @@ public class LeaseService
       .map(invitation -> mapTenantInvitationToDTO(lease.getId(), invitation))
       .toList();
 
-    BigDecimal totalPaymentAmount = getTotalPaymentAmount(
-      lease.getRentAmount(),
-      lease.getRentFrequency(),
-      lease.getStartDate(),
-      lease.getEndDate()
-    );
-
-    BigDecimal amountPaid = lease.getPayments()
-      .stream()
-      .filter(payment -> payment.getStatus() == PaymentStatus.COMPLETED)
-      .map(Payment::getAmount)
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-    BigDecimal balance = totalPaymentAmount.subtract(amountPaid);
 
     return new LeaseDetailsDTO(
       lease.getReferenceNumber(),
@@ -177,9 +161,6 @@ public class LeaseService
       lease.getCurrency(),
       lease.getRentFrequency(),
       lease.isFullLeasePaymentRequired(),
-      totalPaymentAmount,
-      amountPaid,
-      balance,
       lease.getStatus().name(),
       tenant != null ? new TenantDetailsDTO(
         tenant.getId(),
@@ -193,41 +174,7 @@ public class LeaseService
     );
   }
 
-  private void sendInvitationToTenant(String firstName, String lastName, String phoneNumber)
-  {
-    // Implement the logic to send an invitation to the tenant
-    // This could involve sending an email or SMS with a link to create an account
-  }
 
-  private BigDecimal getTotalPaymentAmount(
-    BigDecimal rentAmount,
-    RentFrequency rentFrequency,
-    LocalDate startDate,
-    LocalDate endDate
-  ) {
-    if (startDate.isAfter(endDate)) {
-      throw new IllegalArgumentException("Start date cannot be after end date");
-    }
-
-    long periods = switch (rentFrequency) {
-      case DAILY -> ChronoUnit.DAYS.between(startDate, endDate) + 1;
-
-      case WEEKLY -> ChronoUnit.WEEKS.between(startDate, endDate) + 1;
-
-      case MONTHLY -> ChronoUnit.MONTHS.between(
-        YearMonth.from(startDate),
-        YearMonth.from(endDate)
-      ) + 1;
-
-      case YEARLY -> ChronoUnit.YEARS.between(
-        startDate,
-        endDate
-      ) + 1;
-    };
-
-    return rentAmount
-      .multiply(BigDecimal.valueOf(periods));
-  }
 
   private LeaseInvitationDetailsDTO mapTenantInvitationToDTO(Long leaseId, LeaseInvitation invitation) {
     return new LeaseInvitationDetailsDTO(
@@ -270,5 +217,17 @@ public class LeaseService
       lease.setTenantId(leaseCreateDTO.tenantId());
     }
     return lease;
+  }
+
+  private LeaseInvitation createLeaseInvitation(String firstName, String lastName, String phoneNumber)
+  {
+    LeaseInvitation leaseInvitation = new LeaseInvitation();
+    leaseInvitation.setFirstName(firstName);
+    leaseInvitation.setLastName(lastName);
+    leaseInvitation.setPhoneNumber(phoneNumber);
+    leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
+    leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
+    leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+    return leaseInvitation;
   }
 }

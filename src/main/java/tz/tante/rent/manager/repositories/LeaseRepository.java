@@ -11,3 +11,5 @@ public interface LeaseRepository extends JpaRepository<Lease, Long>
 
   List<Lease> findByTenantIdAndStatus(Long tenantId, LeaseStatus leaseStatus);
 }
+
+

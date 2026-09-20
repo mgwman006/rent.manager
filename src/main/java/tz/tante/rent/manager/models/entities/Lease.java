@@ -1,8 +1,7 @@
 package tz.tante.rent.manager.models.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import tz.tante.rent.manager.enums.LeaseInitiator;
 import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.RentFrequency;
@@ -16,6 +15,9 @@ import java.util.Set;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "leases")
 public class Lease extends BaseEntity
@@ -64,7 +66,7 @@ public class Lease extends BaseEntity
     cascade = CascadeType.ALL,
     orphanRemoval = true
   )
-  private List<Payment> payments = new ArrayList<>();
+  private List<PaymentBlock> paymentBlocks = new ArrayList<>();
 
   @OneToMany(
     mappedBy = "lease",
