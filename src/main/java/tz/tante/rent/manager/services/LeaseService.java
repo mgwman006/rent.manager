@@ -8,7 +8,9 @@ import tz.tante.rent.manager.engines.rent.RentCalculator;
 import tz.tante.rent.manager.enums.*;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
+import tz.tante.rent.manager.models.dtos.requests.RentCreateDTO;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
+import tz.tante.rent.manager.models.dtos.requests.leases.LeaseTermsUpdateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.RentDTO;
 import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
@@ -51,9 +53,23 @@ public class LeaseService
       .map(this::getLeaseDetailsDTO)
       .toList();
   }
-  public List<LeaseDetailsDTO> getLeasesByRentalProfile(Long rentalProfileId)
+  public List<LeaseDetailsDTO> getLeasesByRentalProfileAndStatus(Long rentalProfileId, LeaseStatus status)
   {
-    List<Lease> leases = leaseRepository.findByRentalProfileId(rentalProfileId);
+    List<Lease> leases = leaseRepository.findByRentalProfileIdAndStatus(rentalProfileId, status)
+      .stream()
+      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC"))))
+      .toList();
+    return leases.stream()
+      .map(this::getLeaseDetailsDTO)
+      .toList();
+  }
+
+  public List<LeaseDetailsDTO> getAllLeasesByRentalProfile(Long rentalProfileId)
+  {
+    List<Lease> leases = leaseRepository.findByRentalProfileId(rentalProfileId)
+      .stream()
+      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC"))))
+      .toList();
     return leases.stream()
       .map(this::getLeaseDetailsDTO)
       .toList();
@@ -74,7 +90,7 @@ public class LeaseService
 
     Lease lease = createLeaseFromDTO(leaseCreateDTO, LeaseInitiator.LANDLORD);
     lease.setReferenceNumber(String.format("LS-YR%d-%06d", currentYear, nextSequence));
-    RentCalculator.generatePaymentBlocksForLease(lease);
+    lease.replacePaymentBlocks(RentCalculator.generatePaymentBlocksForLease(lease));
 
     rentalProfile.addLease(lease);
 
@@ -111,7 +127,7 @@ public class LeaseService
 
     Lease lease = createLeaseFromDTO(leaseCreateDTO, LeaseInitiator.TENANT);
     lease.setReferenceNumber(String.format("LS-YR%d-%06d", currentYear, nextSequence));
-    RentCalculator.generatePaymentBlocksForLease(lease);
+    lease.replacePaymentBlocks(RentCalculator.generatePaymentBlocksForLease(lease));
 
     LeaseInvitation leaseInvitation = createLeaseInvitation(
       leaseCreateDTO.landlordFirstName(),
@@ -124,6 +140,53 @@ public class LeaseService
 
     Lease savedLease = leaseRepository.save(lease);
     return getLeaseDetailsDTO(savedLease);
+  }
+
+  @Transactional
+  public LeaseDetailsDTO updateLeaseTerms(Long leaseId, LeaseTermsUpdateDTO leaseTermsUpdateDTO)
+  {
+    Lease lease = leaseRepository.findById(leaseId)
+      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + NOT_FOUND));
+
+    if (lease.getStatus()== LeaseStatus.ACTIVE || lease.getStatus() == LeaseStatus.ENDED || lease.getStatus() == LeaseStatus.EXPIRED)
+    {
+      throw new TanteException("Cannot update terms of an active lease or a lease that has ended or expired.");
+    }
+
+    lease.setStartDate(leaseTermsUpdateDTO.startDate());
+    lease.setEndDate(leaseTermsUpdateDTO.endDate());
+    lease.setFullLeasePaymentRequired(leaseTermsUpdateDTO.fullLeasePaymentRequired());
+
+    Rent rent = getRent(leaseTermsUpdateDTO.rent());
+    rent.addLease(lease);
+
+    lease.replacePaymentBlocks(RentCalculator.generatePaymentBlocksForLease(lease));
+
+    Lease updatedLease = leaseRepository.save(lease);
+    return getLeaseDetailsDTO(updatedLease);
+  }
+
+  private Rent getRent(RentCreateDTO rentCreateDTO)
+  {
+    Rent rent = rentRepository.findById(rentCreateDTO.id())
+      .orElse(null);
+
+    if (rent == null)
+    {
+      rent = new Rent();
+      rent.setAmount(rentCreateDTO.amount());
+      rent.setCurrency(rentCreateDTO.currency());
+      rent.setFrequency(rentCreateDTO.frequency());
+      rent = rentRepository.save(rent);
+    }
+    else
+    {
+      rent.setAmount(rentCreateDTO.amount());
+      rent.setCurrency(rentCreateDTO.currency());
+      rent.setFrequency(rentCreateDTO.frequency());
+      rent = rentRepository.save(rent);
+    }
+    return rent;
   }
 
   private LeaseSequence createSequence(int currentYear)
@@ -215,17 +278,7 @@ public class LeaseService
       tenant.getLeases().add(lease);
     }
 
-    Rent rent = rentRepository.findById(leaseCreateDTO.rent().id())
-      .orElse(null);
-
-    if (rent == null)
-    {
-      rent = new Rent();
-      rent.setAmount(leaseCreateDTO.rent().amount());
-      rent.setCurrency(leaseCreateDTO.rent().currency());
-      rent.setFrequency(leaseCreateDTO.rent().frequency());
-    }
-
+    Rent rent = getRent(leaseCreateDTO.rent());
     rent.addLease(lease);
     return lease;
   }

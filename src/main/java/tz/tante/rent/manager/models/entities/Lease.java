@@ -74,4 +74,15 @@ public class Lease extends BaseEntity
     invitation.setLease(this);
   }
 
+  public void replacePaymentBlocks(List<PaymentBlock> paymentBlocks) {
+    this.paymentBlocks.clear();
+
+    paymentBlocks.forEach(this::addPaymentBlock);
+  }
+
+  public void addPaymentBlock(PaymentBlock paymentBlock) {
+    paymentBlock.setLease(this);
+    this.paymentBlocks.add(paymentBlock);
+  }
+
 }

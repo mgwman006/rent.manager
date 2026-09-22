@@ -15,6 +15,7 @@ import tz.tante.rent.manager.repositories.LeaseRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,9 +30,9 @@ public class RentCalculator
     Lease lease = leaseRepository.findById(leaseId)
       .orElseThrow(() -> new TanteException("Lease not found for id: " + leaseId));
 
-    if (!isValidOperationalLease(lease)) {
-      throw new TanteException("Lease is not valid for payment status calculation.");
-    }
+//    if (!isValidOperationalLease(lease)) {
+//      throw new TanteException("Lease is not valid for payment status calculation.");
+//    }
 
     List<PaymentBlock> paymentBlocks = lease.getPaymentBlocks();
     List<PaymentBlockSummary> paymentBlockSummaries = getPaymentBlockSummaries(paymentBlocks);
@@ -136,28 +137,34 @@ public class RentCalculator
     );
   }
 
-  public static void generatePaymentBlocksForLease(Lease lease) {
-    if (lease.getPaymentBlocks() != null && !lease.getPaymentBlocks().isEmpty()) {
-      throw new TanteException("Payment blocks already exist for this lease.");
-    }
+  public static List<PaymentBlock> generatePaymentBlocksForLease(Lease lease) {
+    List<PaymentBlock> paymentBlocks = new ArrayList<>();
 
     LocalDate currentStartDate = lease.getStartDate();
     LocalDate leaseEndDate = lease.getEndDate();
     Rent rent = lease.getRent();
 
     while (!currentStartDate.isAfter(leaseEndDate)) {
-      LocalDate currentEndDate = calculateEndDate(currentStartDate, rent.getFrequency(), leaseEndDate);
+
+      LocalDate currentEndDate = calculateEndDate(
+        currentStartDate,
+        rent.getFrequency(),
+        leaseEndDate
+      );
+
       PaymentBlock paymentBlock = new PaymentBlock();
       paymentBlock.setLease(lease);
       paymentBlock.setAmount(rent.getAmount());
       paymentBlock.setStartDate(currentStartDate);
       paymentBlock.setEndDate(currentEndDate);
-      paymentBlock.setDueDate(currentEndDate); // Assuming due date is the same as end date
+      paymentBlock.setDueDate(currentEndDate);
 
-      lease.getPaymentBlocks().add(paymentBlock);
+      paymentBlocks.add(paymentBlock);
 
-      currentStartDate = currentEndDate.plusDays(1); // Move to the next period
+      currentStartDate = currentEndDate.plusDays(1);
     }
+
+    return paymentBlocks;
   }
 
   private static LocalDate calculateEndDate(LocalDate startDate, RentFrequency rentFrequency, LocalDate leaseEndDate) {

@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tz.tante.rent.manager.engines.rent.RentCalculator;
 import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
+import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
+import tz.tante.rent.manager.models.dtos.requests.leases.LeaseTermsUpdateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.services.LeaseService;
 
@@ -38,10 +40,27 @@ public class LeaseController
       .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
   }
 
-  @GetMapping("/rental-profile/{rentalProfileId}")
-  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getLeasesByRentalProfile(@PathVariable Long rentalProfileId)
+  @PatchMapping("/{leaseId}/terms")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> updateLeaseTerms(@PathVariable Long leaseId, @Valid @RequestBody LeaseTermsUpdateDTO leaseTermsUpdateDTO)
   {
-    List<LeaseDetailsDTO> leases = leaseService.getLeasesByRentalProfile(rentalProfileId);
+    LeaseDetailsDTO leaseDetails = leaseService.updateLeaseTerms(leaseId, leaseTermsUpdateDTO);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
+  }
+
+  @GetMapping("/rental-profile/{rentalProfileId}")
+  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getLeasesByRentalProfile(@PathVariable Long rentalProfileId, @RequestParam(required = false) LeaseStatus status)
+  {
+    List<LeaseDetailsDTO> leases;
+    if(status == null)
+    {
+      leases = leaseService.getAllLeasesByRentalProfile(rentalProfileId);
+    }
+    else
+    {
+      leases = leaseService.getLeasesByRentalProfileAndStatus(rentalProfileId, status);
+    }
+
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(leases, HttpStatus.OK.value()));
   }
