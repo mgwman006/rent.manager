@@ -78,6 +78,11 @@ public class LeaseService
   @Transactional
   public LeaseDetailsDTO createLeaseInitiatedByLandlord(LeaseCreateDTO leaseCreateDTO)
   {
+    if (!isValidateLeaseDates(leaseCreateDTO.startDate(), leaseCreateDTO.endDate()))
+    {
+      throw new TanteException("Invalid lease dates: start date must be before end date.");
+    }
+
     RentalProfile rentalProfile = rentalProfileRepository.findById(leaseCreateDTO.rentalProfileId())
       .orElseThrow(() -> new ResourceNotFoundException("Rental profile with id " + leaseCreateDTO.rentalProfileId() + NOT_FOUND));
 
@@ -93,7 +98,6 @@ public class LeaseService
     lease.replacePaymentBlocks(RentCalculator.generatePaymentBlocksForLease(lease));
 
     rentalProfile.addLease(lease);
-
 
     LeaseInvitation leaseInvitation = createLeaseInvitation(
       leaseCreateDTO.tenantFirstName(),
@@ -174,18 +178,11 @@ public class LeaseService
     if (rent == null)
     {
       rent = new Rent();
-      rent.setAmount(rentCreateDTO.amount());
-      rent.setCurrency(rentCreateDTO.currency());
-      rent.setFrequency(rentCreateDTO.frequency());
-      rent = rentRepository.save(rent);
     }
-    else
-    {
-      rent.setAmount(rentCreateDTO.amount());
-      rent.setCurrency(rentCreateDTO.currency());
-      rent.setFrequency(rentCreateDTO.frequency());
-      rent = rentRepository.save(rent);
-    }
+    rent.setAmount(rentCreateDTO.amount());
+    rent.setCurrency(rentCreateDTO.currency());
+    rent.setFrequency(rentCreateDTO.frequency());
+    rent = rentRepository.save(rent);
     return rent;
   }
 
@@ -279,7 +276,7 @@ public class LeaseService
     }
 
     Rent rent = getRent(leaseCreateDTO.rent());
-    rent.addLease(lease);
+    lease.setRent(rent);
     return lease;
   }
 
@@ -293,5 +290,10 @@ public class LeaseService
     leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
     leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
     return leaseInvitation;
+  }
+
+  private boolean isValidateLeaseDates(LocalDate startDate, LocalDate endDate)
+  {
+    return startDate.isBefore(endDate);
   }
 }

@@ -144,7 +144,7 @@ public class RentCalculator
     LocalDate leaseEndDate = lease.getEndDate();
     Rent rent = lease.getRent();
 
-    while (!currentStartDate.isAfter(leaseEndDate)) {
+    while (currentStartDate.isBefore(leaseEndDate)) {
 
       LocalDate currentEndDate = calculateEndDate(
         currentStartDate,

@@ -12,7 +12,7 @@ public record RentCreateDTO(
     BigDecimal amount,
     @NotBlank(message = "Currency cannot be blank")
     String currency,
-    @NotBlank(message = "Frequency cannot be blank")
+    @NotNull(message = "Frequency cannot be null")
     RentFrequency frequency
 )
 {
