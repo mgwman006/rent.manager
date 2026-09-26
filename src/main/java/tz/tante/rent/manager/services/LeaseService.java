@@ -17,6 +17,8 @@ import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.*;
 import tz.tante.rent.manager.repositories.*;
+import tz.tante.rent.manager.utilities.Utils;
+
 import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
 
 
@@ -285,7 +287,7 @@ public class LeaseService
     LeaseInvitation leaseInvitation = new LeaseInvitation();
     leaseInvitation.setFirstName(firstName);
     leaseInvitation.setLastName(lastName);
-    leaseInvitation.setPhoneNumber(phoneNumber);
+    leaseInvitation.setPhoneNumber(Utils.normalizePhone(phoneNumber));
     leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
     leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
     leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);

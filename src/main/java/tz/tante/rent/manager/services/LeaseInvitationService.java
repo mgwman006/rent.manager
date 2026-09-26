@@ -19,6 +19,8 @@ import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.LeaseInvitationRepository;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
+import tz.tante.rent.manager.utilities.Utils;
+
 import static tz.tante.rent.manager.utilities.Constant.TENANT_NOT_FOUND_BY_TOKEN_MESSAGE;
 
 
@@ -86,7 +88,7 @@ public class LeaseInvitationService
       {
         tenant = new Tenant();
         tenant.setUserId(userId);
-        tenant.setPhoneNumber(invitation.getPhoneNumber());
+        tenant.setPhoneNumber(Utils.normalizePhone(invitation.getPhoneNumber()));
         tenant.setEmail(invitation.getEmail());
         tenant.setFirstName(invitation.getFirstName());
         tenant.setLastName(invitation.getLastName());
@@ -152,7 +154,7 @@ public class LeaseInvitationService
       invitation.getStatus(),
       invitation.getExpiresAt(),
       invitation.getAcceptedAt() != null ? invitation.getAcceptedAt() : null,
-      invitation.getSentAt() != null ? invitation.getSentAt() : null
+      invitation.getCreatedAt() != null ? invitation.getCreatedAt() : null
     );
   }
 
@@ -166,7 +168,7 @@ public class LeaseInvitationService
 
   public List<LeaseInvitationDetailsDTO> getPendingInvitationsByPhoneNumber(String phoneNumber)
   {
-    List<LeaseInvitation> invitations = leaseInvitationRepository.findByPhoneNumberAndStatus(phoneNumber, LeaseInvitationStatus.PENDING);
+    List<LeaseInvitation> invitations = leaseInvitationRepository.findByPhoneNumberAndStatus(Utils.normalizePhone(phoneNumber), LeaseInvitationStatus.PENDING);
     return invitations.stream()
       .map(invitation -> mapInvitationToDTO(invitation.getLease().getId(), invitation))
       .toList();

@@ -9,7 +9,6 @@ import java.time.LocalDate;
 
 @Schema(description = "Data Transfer Object for creating a new lease.")
 public record LeaseCreateDTO(
-  @NotNull(message = "Rental profile ID cannot be null")
   long rentalProfileId,
 
   long unitId,
@@ -34,8 +33,6 @@ public record LeaseCreateDTO(
   @NotNull(message = "End date cannot be null")
   LocalDate endDate,
 
-  @NotNull(message = "Rent details cannot be null")
-  @Valid
   RentCreateDTO rent,
 
   @NotNull(message = "Full lease payment requirement cannot be null")
