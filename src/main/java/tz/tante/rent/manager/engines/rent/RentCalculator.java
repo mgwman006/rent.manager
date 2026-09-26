@@ -3,6 +3,7 @@ package tz.tante.rent.manager.engines.rent;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
+import tz.tante.rent.manager.engines.rent.dtos.MonthlyCollectionSummary;
 import tz.tante.rent.manager.engines.rent.dtos.PaymentBlockSummary;
 import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
 import tz.tante.rent.manager.enums.*;
@@ -23,35 +24,6 @@ import java.util.List;
 @AllArgsConstructor
 public class RentCalculator
 {
-  private final LeaseRepository leaseRepository;
-
-  public RentCollectionSummary getLeasePaymentStatus(Long leaseId)
-  {
-    Lease lease = leaseRepository.findById(leaseId)
-      .orElseThrow(() -> new TanteException("Lease not found for id: " + leaseId));
-
-//    if (!isValidOperationalLease(lease)) {
-//      throw new TanteException("Lease is not valid for payment status calculation.");
-//    }
-
-    List<PaymentBlock> paymentBlocks = lease.getPaymentBlocks();
-    List<PaymentBlockSummary> paymentBlockSummaries = getPaymentBlockSummaries(paymentBlocks);
-
-    return getRentCollectionSummary(paymentBlockSummaries);
-  }
-
-  private boolean isValidOperationalLease(Lease lease)
-  {
-    if (lease.getStatus() != LeaseStatus.ACTIVE) {
-      return false;
-    }
-
-    if (lease.getEndDate().isBefore(lease.getStartDate())) {
-      return false;
-    }
-
-    return !lease.getEndDate().isBefore(LocalDate.now());
-  }
 
   private BigDecimal totalLeaseAmount(List<PaymentBlockSummary> paymentBlockSummaries)
   {
@@ -90,7 +62,7 @@ public class RentCalculator
     }
   }
 
-  private List<PaymentBlockSummary> getPaymentBlockSummaries(List<PaymentBlock> paymentBlocks)
+  public List<PaymentBlockSummary> getPaymentBlockSummaries(List<PaymentBlock> paymentBlocks)
   {
     return paymentBlocks
       .stream()
@@ -116,7 +88,7 @@ public class RentCalculator
     );
   }
 
-  private RentCollectionSummary getRentCollectionSummary(List<PaymentBlockSummary> paymentBlockSummaries)
+  public RentCollectionSummary getRentCollectionSummary(List<PaymentBlockSummary> paymentBlockSummaries)
   {
     BigDecimal totalLeaseAmount = totalLeaseAmount(paymentBlockSummaries);
 
@@ -179,4 +151,25 @@ public class RentCalculator
     return endDate.isAfter(leaseEndDate) ? leaseEndDate : endDate;
   }
 
+  public MonthlyCollectionSummary getMonthlyCollectionSummary(List<PaymentBlock> paymentBlocks, int month, int year)
+  {
+    BigDecimal totalExpectedAmount = BigDecimal.ZERO;
+    BigDecimal totalAmountPaid = BigDecimal.ZERO;
+
+    for (PaymentBlock paymentBlock : paymentBlocks)
+    {
+      if ((paymentBlock.getStartDate().getYear() == year && paymentBlock.getStartDate().getMonthValue() == month) ||
+        (paymentBlock.getEndDate().getYear() == year && paymentBlock.getEndDate().getMonthValue() == month))
+      {
+        totalExpectedAmount = totalExpectedAmount.add(paymentBlock.getAmount());
+        totalAmountPaid = totalAmountPaid.add(totalPayment(paymentBlock.getTransactions()));
+      }
+    }
+
+    BigDecimal totalOutstandingAmount = totalExpectedAmount.subtract(totalAmountPaid);
+    double progressPercentage = totalExpectedAmount.compareTo(BigDecimal.ZERO) > 0
+      ? totalAmountPaid.divide(totalExpectedAmount, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue()
+      : 0.0;
+    return new MonthlyCollectionSummary(totalExpectedAmount, totalAmountPaid, totalOutstandingAmount, progressPercentage);
+  }
 }

@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tz.tante.rent.manager.engines.rent.RentCalculator;
+import tz.tante.rent.manager.engines.rent.dtos.MonthlyCollectionSummary;
 import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
 import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
@@ -22,8 +22,9 @@ import java.util.List;
 public class LeaseController
 {
   private final LeaseService leaseService;
-  private final RentCalculator rentCalculator;
 
+
+  /*------------------------------- LANDLORD POST ENDPOINTS ----------------------------------*/
   @PostMapping("/landlord")
   public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLeaseByLandlord(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
   {
@@ -32,6 +33,7 @@ public class LeaseController
       .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
   }
 
+  /*------------------------------- TENANT POST ENDPOINTS ----------------------------------*/
   @PostMapping("/tenant")
   public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLeaseByTenant(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
   {
@@ -40,6 +42,8 @@ public class LeaseController
       .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
   }
 
+
+  /*------------------------------- GENERAL PATCH ENDPOINTS ----------------------------------*/
   @PatchMapping("/{leaseId}/terms")
   public ResponseEntity<ApiResponse<LeaseDetailsDTO>> updateLeaseTerms(@PathVariable Long leaseId, @Valid @RequestBody LeaseTermsUpdateDTO leaseTermsUpdateDTO)
   {
@@ -48,6 +52,8 @@ public class LeaseController
       .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
   }
 
+
+  /*------------------------------- LANDLORD GET ENDPOINTS ----------------------------------*/
   @GetMapping("/rental-profile/{rentalProfileId}")
   public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getLeasesByRentalProfile(@PathVariable Long rentalProfileId, @RequestParam(required = false) LeaseStatus status)
   {
@@ -65,6 +71,28 @@ public class LeaseController
       .body(ApiResponse.success(leases, HttpStatus.OK.value()));
   }
 
+  @GetMapping("/rental-profile/{rentalProfileId}/monthly-rent-summary")
+  public ResponseEntity<ApiResponse<MonthlyCollectionSummary>> getMonthlyRentSummaryByRentalProfile(
+    @PathVariable Long rentalProfileId,@RequestParam int month,@RequestParam int year)
+  {
+    MonthlyCollectionSummary monthlyCollectionSummary = leaseService.getMonthlyCollectionSummary(rentalProfileId, month, year);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(monthlyCollectionSummary, HttpStatus.OK.value()));
+  }
+
+
+
+  /*------------------------------- TENANT GET ENDPOINTS ----------------------------------*/
+  @GetMapping("/tenant/{tenantId}")
+  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getActiveLeasesByTenant(@PathVariable Long tenantId)
+  {
+    List<LeaseDetailsDTO> leases = leaseService.getActiveLeasesByTenant(tenantId);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leases, HttpStatus.OK.value()));
+  }
+
+
+  /*------------------------------- GENERAL GET ENDPOINTS ----------------------------------*/
   @GetMapping
   public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getAllLeases()
   {
@@ -81,18 +109,10 @@ public class LeaseController
       .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
   }
 
-  @GetMapping("/tenant/{tenantId}")
-  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getActiveLeasesByTenant(@PathVariable Long tenantId)
-  {
-    List<LeaseDetailsDTO> leases = leaseService.getActiveLeasesByTenant(tenantId);
-    return ResponseEntity.status(HttpStatus.OK)
-      .body(ApiResponse.success(leases, HttpStatus.OK.value()));
-  }
-
   @GetMapping("/rent/summary/{leaseId}")
   public ResponseEntity<ApiResponse<RentCollectionSummary>> getLeasePaymentStatus(@PathVariable Long leaseId)
   {
-    RentCollectionSummary rentCollectionSummary = rentCalculator.getLeasePaymentStatus(leaseId);
+    RentCollectionSummary rentCollectionSummary = leaseService.getLeasePaymentStatus(leaseId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(rentCollectionSummary, HttpStatus.OK.value()));
   }

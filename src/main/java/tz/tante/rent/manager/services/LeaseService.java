@@ -5,6 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tz.tante.rent.manager.engines.rent.RentCalculator;
+import tz.tante.rent.manager.engines.rent.dtos.MonthlyCollectionSummary;
+import tz.tante.rent.manager.engines.rent.dtos.PaymentBlockSummary;
+import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
 import tz.tante.rent.manager.enums.*;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
@@ -37,7 +40,30 @@ public class LeaseService
   private final TenantRepository tenantRepository;
   private final LeaseSequenceRepository leaseSequenceRepository;
   private final RentRepository rentRepository;
+  private final RentCalculator rentCalculator;
 
+
+  public MonthlyCollectionSummary getMonthlyCollectionSummary(Long rentalProfileId, int month, int year)
+  {
+    List<Lease> leases = leaseRepository.findByRentalProfileIdAndStatus(rentalProfileId, LeaseStatus.ACTIVE);
+
+    List<PaymentBlock> paymentBlocks = leases.stream()
+      .flatMap(lease -> lease.getPaymentBlocks().stream())
+      .toList();
+
+    return rentCalculator.getMonthlyCollectionSummary(paymentBlocks, month, year);
+  }
+
+  public RentCollectionSummary getLeasePaymentStatus(Long leaseId)
+  {
+    Lease lease = leaseRepository.findById(leaseId)
+      .orElseThrow(() -> new TanteException("Lease not found for id: " + leaseId));
+
+    List<PaymentBlock> paymentBlocks = lease.getPaymentBlocks();
+    List<PaymentBlockSummary> paymentBlockSummaries = rentCalculator.getPaymentBlockSummaries(paymentBlocks);
+
+    return rentCalculator.getRentCollectionSummary(paymentBlockSummaries);
+  }
 
   public List<LeaseDetailsDTO> getActiveLeasesByTenant(Long tenantId)
   {
