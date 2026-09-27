@@ -39,4 +39,9 @@ public class PaymentBlock extends BaseEntity {
     orphanRemoval = true
   )
   private List<PaymentTransaction> transactions = new ArrayList<>();
+
+  public void addTransaction(PaymentTransaction transaction) {
+    transactions.add(transaction);
+    transaction.setPaymentBlock(this);
+  }
 }

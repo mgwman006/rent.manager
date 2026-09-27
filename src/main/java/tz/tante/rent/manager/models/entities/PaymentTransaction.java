@@ -26,6 +26,15 @@ public class PaymentTransaction extends BaseEntity {
   private BigDecimal amount;
 
   @Column(nullable = false)
+  private String currency;
+
+  @Column(nullable = false)
+  private Long payerUserId;
+
+  @Column(length = 500)
+  private String note;
+
+  @Column(nullable = false)
   private LocalDateTime transactionDate;
 
   @Column(nullable = false, unique = true, length = 100)
