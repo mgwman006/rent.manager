@@ -12,8 +12,8 @@ import tz.tante.rent.manager.models.entities.PaymentBlock;
 import tz.tante.rent.manager.models.entities.PaymentTransaction;
 import tz.tante.rent.manager.repositories.PaymentBlockRepository;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 @Setter
@@ -43,6 +43,35 @@ public class PaymentBlockService
       .note(paymentTransactionCreateDTO.note())
       .transactionDate(LocalDateTime.now())
       .reference(paymentTransactionCreateDTO.reference())
+      .method(paymentTransactionCreateDTO.method())
+      .status(PaymentStatus.SUCCESSFUL)
+      .build();
+
+    paymentBlock.addTransaction(paymentTransaction);
+    paymentBlockRepository.save(paymentBlock);
+  }
+
+  public void recordPaymentByTenant(Long tenantId, PaymentTransactionCreateDTO paymentTransactionCreateDTO) {
+    PaymentBlock paymentBlock = paymentBlockRepository.findById(paymentTransactionCreateDTO.paymentBlockId())
+      .orElseThrow(() -> new TanteException("Payment block not found"));
+
+    if (paymentBlock.getAmount().compareTo(paymentTransactionCreateDTO.amount()) < 0) {
+      throw new TanteException("Payment amount exceeds the payment block amount");
+    }
+    if (paymentBlock.getAmount().compareTo(paymentTransactionCreateDTO.amount()) > 0) {
+      throw new TanteException("Payment amount is less than the payment block amount");
+    }
+
+    UUID transactionReference = UUID.randomUUID();
+
+    PaymentTransaction paymentTransaction = PaymentTransaction.builder()
+      .paymentBlock(paymentBlock)
+      .amount(paymentTransactionCreateDTO.amount())
+      .currency(paymentTransactionCreateDTO.currency())
+      .payerUserId(paymentTransactionCreateDTO.payerUserId())
+      .note(paymentTransactionCreateDTO.note())
+      .transactionDate(LocalDateTime.now())
+      .reference(transactionReference.toString())
       .method(paymentTransactionCreateDTO.method())
       .status(PaymentStatus.SUCCESSFUL)
       .build();

@@ -20,4 +20,11 @@ public class PaymentBlockController
     paymentBlockService.recordPaymentByLandlord(rentalprofileId, paymentTransactionCreateDTO);
     return ResponseEntity.ok(ApiResponse.success("Payment recorded successfully", 200));
   }
+
+  @PostMapping("/tenant/{tenantId}/record-payment")
+  public ResponseEntity<ApiResponse<String>> recordPaymentByTenant(@PathVariable Long tenantId,
+                                                                    @RequestBody PaymentTransactionCreateDTO paymentTransactionCreateDTO) {
+    paymentBlockService.recordPaymentByTenant(tenantId, paymentTransactionCreateDTO);
+    return ResponseEntity.ok(ApiResponse.success("Payment recorded successfully", 200));
+  }
 }
