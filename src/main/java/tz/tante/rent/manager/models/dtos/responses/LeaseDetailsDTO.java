@@ -7,6 +7,7 @@ import java.util.List;
 public record LeaseDetailsDTO(
   String referenceNumber,
   long id,
+  long unitId,
   LeaseInitiator initiatedBy,
   String startDate,
   String endDate,

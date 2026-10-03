@@ -236,6 +236,7 @@ public class LeaseService
     return new LeaseDetailsDTO(
       lease.getReferenceNumber(),
       lease.getId(),
+      lease.getUnitId(),
       lease.getInitiatedBy(),
       lease.getStartDate().toString(),
       lease.getEndDate().toString(),
