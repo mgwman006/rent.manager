@@ -3,6 +3,8 @@ package tz.tante.rent.manager.utilities;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -16,6 +18,7 @@ import tz.tante.rent.manager.exceptions.AuthException;
 @Component
 public class JwtUtils {
 
+  private static String jwtToken;
   private static final Key key = Keys.hmacShaKeyFor(Constant.jwtSecret.getBytes(StandardCharsets.UTF_8));
 
   public static boolean isValidIssuer(String token)
@@ -25,6 +28,7 @@ public class JwtUtils {
       String EXPECTED_ISSUER = "tz.tante.auth";
       SignedJWT jwt = SignedJWT.parse(token);
       String issuer = jwt.getJWTClaimsSet().getIssuer();
+      setJwtToken(token);
       return EXPECTED_ISSUER.equals(issuer);
     }
     catch (Exception exception)
@@ -58,5 +62,13 @@ public class JwtUtils {
   public Set<String> getRolesFromToken(String token) {
     Claims claims = getClaims(token);
     return new HashSet<>(((java.util.List<String>) claims.get("roles")));
+  }
+
+  private static void setJwtToken(String token) {
+    jwtToken = token;
+  }
+
+  public static String getJwtToken() {
+    return jwtToken;
   }
 }

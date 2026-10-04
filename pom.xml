@@ -109,6 +109,11 @@
 			<artifactId>spring-webflux</artifactId>
 			<version>6.1.6</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client</artifactId>
+			<version>1.42.2</version>
+		</dependency>
 
 	</dependencies>
 

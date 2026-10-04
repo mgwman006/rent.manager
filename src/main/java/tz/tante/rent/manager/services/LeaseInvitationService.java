@@ -1,12 +1,15 @@
 package tz.tante.rent.manager.services;
 
+import com.google.common.net.HttpHeaders;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tz.tante.rent.manager.clients.PropertyHttpClient;
 import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.LeaseInvitationStatus;
+import tz.tante.rent.manager.enums.UnitStatus;
 import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.models.dtos.requests.leaseinvitation.LeaseInvitationCreateDTO;
@@ -19,6 +22,7 @@ import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.LeaseInvitationRepository;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
+import tz.tante.rent.manager.utilities.JwtUtils;
 import tz.tante.rent.manager.utilities.Utils;
 
 import static tz.tante.rent.manager.utilities.Constant.TENANT_NOT_FOUND_BY_TOKEN_MESSAGE;
@@ -27,6 +31,7 @@ import static tz.tante.rent.manager.utilities.Constant.TENANT_NOT_FOUND_BY_TOKEN
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -39,6 +44,7 @@ public class LeaseInvitationService
   private final LeaseRepository leaseRepository;
   private final TenantRepository tenantRepository;
   private final RentalProfileRepository rentalProfileRepository;
+  private final PropertyHttpClient propertyHttpClient;
 
   public LeaseInvitationDetailsDTO createInvitation(LeaseInvitationCreateDTO request)
   {
@@ -109,6 +115,7 @@ public class LeaseInvitationService
     invitation.setStatus(LeaseInvitationStatus.ACCEPTED);
     invitation.setAcceptedAt(LocalDateTime.now(ZoneId.of("UTC")));
     leaseInvitationRepository.save(invitation);
+    propertyHttpClient.updateUnitStatus(lease.getUnitId(), UnitStatus.OCCUPIED, Map.of(HttpHeaders.AUTHORIZATION, "Bearer " + JwtUtils.getJwtToken()));
   }
 
   @Transactional
@@ -139,6 +146,8 @@ public class LeaseInvitationService
     invitation.setStatus(LeaseInvitationStatus.ACCEPTED);
     invitation.setAcceptedAt(LocalDateTime.now(ZoneId.of("UTC")));
     leaseInvitationRepository.save(invitation);
+
+    propertyHttpClient.updateUnitStatus(lease.getUnitId(), UnitStatus.OCCUPIED, Map.of(HttpHeaders.AUTHORIZATION, "Bearer " + JwtUtils.getJwtToken()));
   }
 
   private LeaseInvitationDetailsDTO mapInvitationToDTO(Long leaseId, LeaseInvitation invitation)
