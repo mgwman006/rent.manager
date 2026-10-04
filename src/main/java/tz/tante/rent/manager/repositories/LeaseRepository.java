@@ -19,6 +19,8 @@ public interface LeaseRepository extends JpaRepository<Lease, Long>
 
   @Query("SELECT l FROM Lease l WHERE l.status = :status AND l.endDate < :today")
   List<Lease> findActiveLeasesPastEndDate( @Param("today") LocalDate today, @Param("status") LeaseStatus status);
+
+  List<Lease> findByTenantId(Long tenantId);
 }
 
 

@@ -84,9 +84,17 @@ public class LeaseController
 
   /*------------------------------- TENANT GET ENDPOINTS ----------------------------------*/
   @GetMapping("/tenant/{tenantId}")
-  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getActiveLeasesByTenant(@PathVariable Long tenantId)
+  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getActiveLeasesByTenant(@PathVariable Long tenantId, @RequestParam(required = false) LeaseStatus status)
   {
-    List<LeaseDetailsDTO> leases = leaseService.getActiveLeasesByTenant(tenantId);
+    List<LeaseDetailsDTO> leases;
+    if(status == null)
+    {
+      leases = leaseService.getAllLeasesByTenant(tenantId);
+    }
+    else
+    {
+      leases = leaseService.getLeasesByTenantAndStatus(tenantId, status);
+    }
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(leases, HttpStatus.OK.value()));
   }

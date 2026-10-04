@@ -90,9 +90,18 @@ public class LeaseService
     return rentCalculator.getRentCollectionSummary(paymentBlockSummaries);
   }
 
-  public List<LeaseDetailsDTO> getActiveLeasesByTenant(Long tenantId)
+  public List<LeaseDetailsDTO> getAllLeasesByTenant(Long tenantId)
   {
-    List<Lease> leases = leaseRepository.findByTenantIdAndStatus(tenantId, LeaseStatus.ACTIVE);
+    List<Lease> leases = leaseRepository.findByTenantId(tenantId);
+    return leases.stream()
+      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC"))))
+      .map(this::getLeaseDetailsDTO)
+      .toList();
+  }
+
+  public List<LeaseDetailsDTO> getLeasesByTenantAndStatus(Long tenantId, LeaseStatus status)
+  {
+    List<Lease> leases = leaseRepository.findByTenantIdAndStatus(tenantId, status);
     return leases.stream()
       .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC"))))
       .map(this::getLeaseDetailsDTO)
@@ -325,9 +334,10 @@ public class LeaseService
 
     if (leaseCreateDTO.tenantId() != null)
     {
-      Tenant tenant = tenantRepository.findById(leaseCreateDTO.tenantId()).orElse(null);
+      Tenant tenant = tenantRepository.findById(leaseCreateDTO.tenantId())
+        .orElseThrow(() -> new ResourceNotFoundException("Tenant with id " + leaseCreateDTO.tenantId() + NOT_FOUND));
       lease.setTenant(tenant);
-      tenant.getLeases().add(lease);
+      tenant.addLease(lease);
     }
 
     Rent rent = getRent(leaseCreateDTO.rent());
