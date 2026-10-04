@@ -1,9 +1,12 @@
 package tz.tante.rent.manager.services;
 
+import com.google.common.net.HttpHeaders;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tz.tante.rent.manager.clients.PropertyHttpClient;
 import tz.tante.rent.manager.engines.rent.RentCalculator;
 import tz.tante.rent.manager.engines.rent.dtos.MonthlyCollectionSummary;
 import tz.tante.rent.manager.engines.rent.dtos.PaymentBlockSummary;
@@ -20,6 +23,7 @@ import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.*;
 import tz.tante.rent.manager.repositories.*;
+import tz.tante.rent.manager.utilities.JwtUtils;
 import tz.tante.rent.manager.utilities.Utils;
 
 import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
@@ -28,7 +32,9 @@ import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -41,7 +47,26 @@ public class LeaseService
   private final LeaseSequenceRepository leaseSequenceRepository;
   private final RentRepository rentRepository;
   private final RentCalculator rentCalculator;
+  private final PropertyHttpClient propertyHttpClient;
 
+  @Scheduled( cron = "0 0 0 * * *", zone = "Africa/Dar_es_Salaam" )
+  @Transactional
+  public void processEndedLeases()
+  {
+    LocalDate today = LocalDate.now( ZoneId.of("Africa/Dar_es_Salaam") );
+    List<Lease> leases = leaseRepository.findActiveLeasesPastEndDate(today, LeaseStatus.ACTIVE);
+    for (Lease lease : leases)
+    {
+      lease.setStatus(LeaseStatus.ENDED);
+      leaseRepository.save(lease);
+      Map<String, String> headers = new HashMap<>();
+      headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + JwtUtils.getJwtToken());
+      if (lease.getUnitId() != null)
+      {
+        propertyHttpClient.updateUnitStatus( lease.getUnitId(), UnitStatus.AVAILABLE, headers );
+      }
+    }
+  }
 
   public MonthlyCollectionSummary getMonthlyCollectionSummary(Long rentalProfileId, int month, int year)
   {
@@ -81,6 +106,7 @@ public class LeaseService
       .map(this::getLeaseDetailsDTO)
       .toList();
   }
+
   public List<LeaseDetailsDTO> getLeasesByRentalProfileAndStatus(Long rentalProfileId, LeaseStatus status)
   {
     List<Lease> leases = leaseRepository.findByRentalProfileIdAndStatus(rentalProfileId, status)
