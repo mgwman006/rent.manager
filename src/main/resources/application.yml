@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: rent.manager
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  sql:
+    init:
+      mode: always
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        schema_update:
+          unique_constraint_strategy: RECREATE_QUIETLY
+
+  security:
+    oauth2:
+      client:
+        registration:
+          property-manager:
+            provider: tante-auth
+            client-id: rent-manager
+            client-secret: ${RENT_MANAGER_CLIENT_SECRET}
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            scope:
+              - property.read
+              - property.write
+
+        provider:
+          tante-auth:
+            issuer-uri: ${AUTH_ISSUER_URI}
+
+
+server:
+  servlet:
+    context-path: /rent-manager
+  port: 8083
+  address: 0.0.0.0
+  forward-headers-strategy: framework
+
+app:
+  cors:
+    allowed-origins: "http://localhost:4176,https://www.landlord.tante.tz,http://localhost:8080,http://localhost:4173,http://192.168.1.81:4173,http://localhost:4173,http://localhost:4175,http://192.168.1.81:4175"
+    allowed-methods: "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+    allowed-headers: "Authorization,Content-Type,Accept,Origin"
+    exposed-headers: "Authorization"
+    allow-credentials: true
+
+property:
+    manager:
+      base:
+        url: ${PROPERTY_MANAGER_BASE_URL}

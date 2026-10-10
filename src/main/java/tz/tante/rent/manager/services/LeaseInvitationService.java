@@ -115,7 +115,7 @@ public class LeaseInvitationService
     invitation.setStatus(LeaseInvitationStatus.ACCEPTED);
     invitation.setAcceptedAt(LocalDateTime.now(ZoneId.of("UTC")));
     leaseInvitationRepository.save(invitation);
-    propertyHttpClient.updateUnitStatus(lease.getUnitId(), UnitStatus.OCCUPIED, Map.of(HttpHeaders.AUTHORIZATION, "Bearer " + JwtUtils.getJwtToken()));
+    propertyHttpClient.updateUnitStatus(lease.getUnitId(), UnitStatus.OCCUPIED);
   }
 
   @Transactional
@@ -147,7 +147,7 @@ public class LeaseInvitationService
     invitation.setAcceptedAt(LocalDateTime.now(ZoneId.of("UTC")));
     leaseInvitationRepository.save(invitation);
 
-    propertyHttpClient.updateUnitStatus(lease.getUnitId(), UnitStatus.OCCUPIED, Map.of(HttpHeaders.AUTHORIZATION, "Bearer " + JwtUtils.getJwtToken()));
+    propertyHttpClient.updateUnitStatus(lease.getUnitId(), UnitStatus.OCCUPIED);
   }
 
   private LeaseInvitationDetailsDTO mapInvitationToDTO(Long leaseId, LeaseInvitation invitation)

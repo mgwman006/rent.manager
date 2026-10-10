@@ -41,6 +41,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class LeaseService
 {
+  private static final Long MAX_LONG_VALUE = 9223372036854775807L;
   private final LeaseRepository leaseRepository;
   private final RentalProfileRepository rentalProfileRepository;
   private final TenantRepository tenantRepository;
@@ -59,11 +60,9 @@ public class LeaseService
     {
       lease.setStatus(LeaseStatus.ENDED);
       leaseRepository.save(lease);
-      Map<String, String> headers = new HashMap<>();
-      headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + JwtUtils.getJwtToken());
-      if (lease.getUnitId() != null)
+      if (lease.getUnitId() != null && lease.getUnitId() != 0L && lease.getUnitId() < MAX_LONG_VALUE)
       {
-        propertyHttpClient.updateUnitStatus( lease.getUnitId(), UnitStatus.AVAILABLE, headers );
+        propertyHttpClient.updateUnitStatus( lease.getUnitId(), UnitStatus.AVAILABLE );
       }
     }
   }
@@ -120,7 +119,7 @@ public class LeaseService
   {
     List<Lease> leases = leaseRepository.findByRentalProfileIdAndStatus(rentalProfileId, status)
       .stream()
-      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC"))))
+      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC")).minusDays(1)))
       .toList();
     return leases.stream()
       .map(this::getLeaseDetailsDTO)
@@ -131,7 +130,7 @@ public class LeaseService
   {
     List<Lease> leases = leaseRepository.findByRentalProfileId(rentalProfileId)
       .stream()
-      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC"))))
+      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC")).minusDays(1)))
       .toList();
     return leases.stream()
       .map(this::getLeaseDetailsDTO)
