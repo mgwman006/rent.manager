@@ -1,6 +1,5 @@
 package tz.tante.rent.manager.services;
 
-import com.google.common.net.HttpHeaders;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,7 +22,6 @@ import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.*;
 import tz.tante.rent.manager.repositories.*;
-import tz.tante.rent.manager.utilities.JwtUtils;
 import tz.tante.rent.manager.utilities.Utils;
 
 import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
@@ -32,9 +30,7 @@ import static tz.tante.rent.manager.utilities.Constant.NOT_FOUND;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 @Service
@@ -119,7 +115,6 @@ public class LeaseService
   {
     List<Lease> leases = leaseRepository.findByRentalProfileIdAndStatus(rentalProfileId, status)
       .stream()
-      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC")).minusDays(1)))
       .toList();
     return leases.stream()
       .map(this::getLeaseDetailsDTO)

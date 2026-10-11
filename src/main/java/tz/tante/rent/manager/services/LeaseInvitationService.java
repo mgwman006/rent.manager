@@ -1,6 +1,5 @@
 package tz.tante.rent.manager.services;
 
-import com.google.common.net.HttpHeaders;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,7 +21,6 @@ import tz.tante.rent.manager.repositories.LeaseRepository;
 import tz.tante.rent.manager.repositories.LeaseInvitationRepository;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
 import tz.tante.rent.manager.repositories.TenantRepository;
-import tz.tante.rent.manager.utilities.JwtUtils;
 import tz.tante.rent.manager.utilities.Utils;
 
 import static tz.tante.rent.manager.utilities.Constant.TENANT_NOT_FOUND_BY_TOKEN_MESSAGE;
@@ -31,7 +29,6 @@ import static tz.tante.rent.manager.utilities.Constant.TENANT_NOT_FOUND_BY_TOKEN
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 
