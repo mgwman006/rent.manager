@@ -16,7 +16,7 @@ public class PropertyHttpClient {
   private static final Logger logger = LoggerFactory.getLogger(PropertyHttpClient.class);
   private final RestClient restClient;
 
-  @Value("${property.manager.base-url}")
+  @Value("${property.manager.base.url}")
   private String propertyManagerBaseUrl;
 
   public PropertyHttpClient(ClientHttpRequestInterceptor oauth2BearerTokenInterceptor) {

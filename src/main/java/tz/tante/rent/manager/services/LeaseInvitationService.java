@@ -106,13 +106,7 @@ public class LeaseInvitationService
 
 
     lease.setTenant(tenant);
-    lease.setStatus(LeaseStatus.ACTIVE);
-    leaseRepository.save(lease);
-
-    invitation.setStatus(LeaseInvitationStatus.ACCEPTED);
-    invitation.setAcceptedAt(LocalDateTime.now(ZoneId.of("UTC")));
-    leaseInvitationRepository.save(invitation);
-    propertyHttpClient.updateUnitStatus(lease.getUnitId(), UnitStatus.OCCUPIED);
+    updateLeaseAndUnitStatus(invitation, lease);
   }
 
   @Transactional
@@ -137,6 +131,12 @@ public class LeaseInvitationService
 
 
     rentalProfile.addLease(lease);
+    updateLeaseAndUnitStatus(invitation, lease);
+  }
+
+  @Transactional
+  protected void updateLeaseAndUnitStatus(LeaseInvitation invitation, Lease lease)
+  {
     lease.setStatus(LeaseStatus.ACTIVE);
     leaseRepository.save(lease);
 
