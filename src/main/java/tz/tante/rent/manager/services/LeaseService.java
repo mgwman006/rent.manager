@@ -98,7 +98,6 @@ public class LeaseService
   {
     List<Lease> leases = leaseRepository.findByTenantIdAndStatus(tenantId, status);
     return leases.stream()
-      .filter(lease -> lease.getEndDate().isAfter(LocalDate.now(ZoneId.of("UTC"))))
       .map(this::getLeaseDetailsDTO)
       .toList();
   }

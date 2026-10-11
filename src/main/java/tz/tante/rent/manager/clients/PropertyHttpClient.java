@@ -15,18 +15,14 @@ public class PropertyHttpClient {
 
   private static final Logger logger = LoggerFactory.getLogger(PropertyHttpClient.class);
   private final RestClient restClient;
-
-  @Value("${property.manager.base.url}")
-  private String propertyManagerBaseUrl;
-
-  public PropertyHttpClient(ClientHttpRequestInterceptor oauth2BearerTokenInterceptor) {
+  
+  public PropertyHttpClient(ClientHttpRequestInterceptor oauth2BearerTokenInterceptor, @Value("${property.manager.base.url}") String propertyManagerBaseUrl)
+  {
     this.restClient = RestClient.builder()
       .baseUrl(propertyManagerBaseUrl)
       .requestInterceptor(oauth2BearerTokenInterceptor)
       .build();
   }
-
-
 
   public void updateUnitStatus(Long unitId, UnitStatus status)
   {

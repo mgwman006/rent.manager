@@ -5,10 +5,8 @@ import lombok.Setter;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tz.tante.rent.manager.clients.PropertyHttpClient;
 import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.LeaseInvitationStatus;
-import tz.tante.rent.manager.enums.UnitStatus;
 import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.models.dtos.requests.leaseinvitation.LeaseInvitationCreateDTO;
@@ -41,7 +39,7 @@ public class LeaseInvitationService
   private final LeaseRepository leaseRepository;
   private final TenantRepository tenantRepository;
   private final RentalProfileRepository rentalProfileRepository;
-  private final PropertyHttpClient propertyHttpClient;
+  private final LeaseInvitationStatusUpdateService leaseInvitationStatusUpdateService;
 
   public LeaseInvitationDetailsDTO createInvitation(LeaseInvitationCreateDTO request)
   {
@@ -106,7 +104,7 @@ public class LeaseInvitationService
 
 
     lease.setTenant(tenant);
-    updateLeaseAndUnitStatus(invitation, lease);
+    leaseInvitationStatusUpdateService.updateLeaseAndUnitStatus(invitation, lease);
   }
 
   @Transactional
@@ -131,20 +129,7 @@ public class LeaseInvitationService
 
 
     rentalProfile.addLease(lease);
-    updateLeaseAndUnitStatus(invitation, lease);
-  }
-
-  @Transactional
-  protected void updateLeaseAndUnitStatus(LeaseInvitation invitation, Lease lease)
-  {
-    lease.setStatus(LeaseStatus.ACTIVE);
-    leaseRepository.save(lease);
-
-    invitation.setStatus(LeaseInvitationStatus.ACCEPTED);
-    invitation.setAcceptedAt(LocalDateTime.now(ZoneId.of("UTC")));
-    leaseInvitationRepository.save(invitation);
-
-    propertyHttpClient.updateUnitStatus(lease.getUnitId(), UnitStatus.OCCUPIED);
+    leaseInvitationStatusUpdateService.updateLeaseAndUnitStatus(invitation, lease);
   }
 
   private LeaseInvitationDetailsDTO mapInvitationToDTO(Long leaseId, LeaseInvitation invitation)
