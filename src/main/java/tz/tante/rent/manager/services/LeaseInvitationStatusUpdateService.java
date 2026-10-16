@@ -3,7 +3,7 @@ package tz.tante.rent.manager.services;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tz.tante.rent.manager.clients.PropertyHttpClient;
+import tz.tante.rent.manager.clients.PropertyManagerClient;
 import tz.tante.rent.manager.enums.LeaseInvitationStatus;
 import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.UnitStatus;
@@ -21,7 +21,7 @@ public class LeaseInvitationStatusUpdateService
 {
   private final LeaseRepository leaseRepository;
   private final LeaseInvitationRepository leaseInvitationRepository;
-  private final PropertyHttpClient propertyHttpClient;
+  private final PropertyManagerClient propertyHttpClient;
 
   @Transactional
   public void updateLeaseAndUnitStatus(LeaseInvitation invitation, Lease lease)

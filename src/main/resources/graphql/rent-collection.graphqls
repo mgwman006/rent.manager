@@ -1,0 +1,24 @@
+type Query {
+    leasePaymentStatus(leaseId: ID!): RentCollectionSummary
+}
+
+type RentCollectionSummary {
+    totalExpectedAmount: BigDecimal!
+    totalPaidAmount: BigDecimal!
+    totalOutstandingAmount: BigDecimal!,
+    status: String!,
+    paymentBlocks: [PaymentBlockSummary!]!
+}
+
+type PaymentBlockSummary {
+    id: ID!
+    amount: BigDecimal!
+    paidAmount: BigDecimal!
+    outstandingAmount: BigDecimal!
+    startDate: String
+    endDate: String
+    dueDate: String
+    status: String!
+}
+
+scalar BigDecimal

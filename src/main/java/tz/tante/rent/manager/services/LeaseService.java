@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tz.tante.rent.manager.clients.PropertyHttpClient;
+import tz.tante.rent.manager.clients.PropertyManagerClient;
 import tz.tante.rent.manager.engines.rent.RentCalculator;
 import tz.tante.rent.manager.engines.rent.dtos.MonthlyCollectionSummary;
 import tz.tante.rent.manager.engines.rent.dtos.PaymentBlockSummary;
@@ -44,7 +44,7 @@ public class LeaseService
   private final LeaseSequenceRepository leaseSequenceRepository;
   private final RentRepository rentRepository;
   private final RentCalculator rentCalculator;
-  private final PropertyHttpClient propertyHttpClient;
+  private final PropertyManagerClient propertyHttpClient;
 
   @Scheduled( cron = "0 0 0 * * *", zone = "Africa/Dar_es_Salaam" )
   @Transactional
