@@ -18,12 +18,24 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         schema_update:
           unique_constraint_strategy: RECREATE_QUIETLY
-
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: tante
+    password: tante_dev_2026
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000
+          multiplier: 2.0
+          max-interval: 5000
   security:
     oauth2:
       client:
         registration:
-          property-manager:
+          rent-manager:
             provider: tante-auth
             client-id: rent-manager
             client-secret: ${RENT_MANAGER_CLIENT_SECRET}

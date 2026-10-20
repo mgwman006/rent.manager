@@ -45,8 +45,9 @@ public class LeaseService
   private final RentRepository rentRepository;
   private final RentCalculator rentCalculator;
   private final PropertyManagerClient propertyHttpClient;
+  private final UnitStatusSyncRepository unitStatusSyncRepository;
 
-  @Scheduled( cron = "0 0 0 * * *", zone = "Africa/Dar_es_Salaam" )
+  @Scheduled( cron = "0 * * * * *", zone = "Africa/Dar_es_Salaam" )
   @Transactional
   public void processEndedLeases()
   {
@@ -56,10 +57,19 @@ public class LeaseService
     {
       lease.setStatus(LeaseStatus.ENDED);
       leaseRepository.save(lease);
-      if (lease.getUnitId() != null && lease.getUnitId() != 0L && lease.getUnitId() < MAX_LONG_VALUE)
-      {
-        propertyHttpClient.updateUnitStatus( lease.getUnitId(), UnitStatus.AVAILABLE );
-      }
+
+      UnitStatusSync sync = new UnitStatusSync();
+      sync.setUnitId(lease.getUnitId());
+      sync.setTargetStatus(UnitStatus.AVAILABLE);
+      sync.setStatus(SyncStatus.PENDING);
+      sync.setAttempts(0);
+      sync.setNextRetryAt(LocalDateTime.now());
+      unitStatusSyncRepository.save(sync);
+//      if (lease.getUnitId() != null && lease.getUnitId() != 0L && lease.getUnitId() < MAX_LONG_VALUE)
+//      {
+//        System.out.println("Ended-lease candidates found: " + leases.size());
+//        propertyHttpClient.updateUnitStatus( lease.getUnitId(), UnitStatus.AVAILABLE );
+//      }
     }
   }
 
