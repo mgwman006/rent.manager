@@ -2,7 +2,12 @@ type Query {
     leasePaymentStatus(leaseId: ID!): RentCollectionSummary
 }
 
+type Subscription {
+    rentCollectionUpdates(leaseId: ID!): RentCollectionSummary!
+}
+
 type RentCollectionSummary {
+    leaseId: ID!
     totalExpectedAmount: BigDecimal!
     totalPaidAmount: BigDecimal!
     totalOutstandingAmount: BigDecimal!,

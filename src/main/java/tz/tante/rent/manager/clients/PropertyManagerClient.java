@@ -13,8 +13,8 @@ import tz.tante.rent.manager.enums.UnitStatus;
   url = "${property.manager.base.url}",
   configuration = FeignOAuth2Config.class
 )
-public interface PropertyManagerClient {
-
+public interface PropertyManagerClient
+{
   @PatchMapping("/v1/units/{unitId}/status")
   void updateUnitStatus(@PathVariable("unitId") Long unitId, @RequestParam("status") UnitStatus status);
 }

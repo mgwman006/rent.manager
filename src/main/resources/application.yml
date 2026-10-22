@@ -51,6 +51,9 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${AUTH_ISSUER_URI}
+  graphql:
+    websocket:
+      path: /graphql
 
 
 server:

@@ -1,0 +1,22 @@
+
+
+
+type Tenant {
+    id: ID!
+    userId: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    phoneNumber: String!
+}
+
+input TenantInput {
+    email: String
+    phoneNumber: String!
+}
+
+type Mutation {
+    createTenant(input: TenantInput!): Tenant!
+    updateTenant(id: ID!, input: TenantInput!): Tenant
+    deleteTenant(id: ID!): Boolean!
+}

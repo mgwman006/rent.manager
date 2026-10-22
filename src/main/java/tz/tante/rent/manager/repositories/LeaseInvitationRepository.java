@@ -13,4 +13,6 @@ public interface LeaseInvitationRepository extends JpaRepository<LeaseInvitation
   Optional<LeaseInvitation> findByToken(UUID token);
 
   List<LeaseInvitation> findByPhoneNumberAndStatus(String phoneNumber, LeaseInvitationStatus leaseInvitationStatus);
+
+  List<LeaseInvitation> findByStatus(LeaseInvitationStatus leaseInvitationStatus);
 }
