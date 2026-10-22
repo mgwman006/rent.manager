@@ -88,7 +88,7 @@ public class RentCalculator
     );
   }
 
-  public RentCollectionSummary getRentCollectionSummary(List<PaymentBlockSummary> paymentBlockSummaries)
+  public RentCollectionSummary getRentCollectionSummary(Long leaseId, List<PaymentBlockSummary> paymentBlockSummaries)
   {
     BigDecimal totalLeaseAmount = totalLeaseAmount(paymentBlockSummaries);
 
@@ -101,6 +101,7 @@ public class RentCalculator
     RentCollectionStatus overallPaymentStatus = determineRentCollectionStatus(totalPaidAmount, totalLeaseAmount);
 
     return new RentCollectionSummary(
+      leaseId,
       totalLeaseAmount,
       totalPaidAmount,
       totalOutstandingAmount,

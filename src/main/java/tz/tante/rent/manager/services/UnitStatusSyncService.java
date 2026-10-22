@@ -22,11 +22,10 @@ public class UnitStatusSyncService {
   private final UnitStatusSyncRepository unitStatusSyncRepository;
   private final PropertyManagerClient propertyManagerClient;
 
-  @Scheduled(fixedDelay = 10000)
+  @Scheduled(fixedDelay = 300000)
   @Transactional
   public void processPendingSyncs() {
-    List<UnitStatusSync> pendingSyncs = unitStatusSyncRepository
-      .findByStatusAndNextRetryAtLessThanEqualOrderByIdAsc(SyncStatus.PENDING, LocalDateTime.now());
+    List<UnitStatusSync> pendingSyncs = unitStatusSyncRepository.findByStatusAndNextRetryAtLessThanEqualOrderByIdAsc(SyncStatus.PENDING, LocalDateTime.now());
 
     for (UnitStatusSync sync : pendingSyncs)
     {

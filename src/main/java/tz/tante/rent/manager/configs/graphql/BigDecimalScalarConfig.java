@@ -9,9 +9,8 @@ import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 public class BigDecimalScalarConfig
 {
   @Bean
-  public RuntimeWiringConfigurer runtimeWiringConfigurer() {
-    return wiringBuilder -> wiringBuilder.scalar(
-      ExtendedScalars.GraphQLBigDecimal
-    );
+  public RuntimeWiringConfigurer runtimeWiringConfigurer()
+  {
+    return wiringBuilder -> wiringBuilder.scalar(ExtendedScalars.GraphQLBigDecimal);
   }
 }
