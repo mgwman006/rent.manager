@@ -17,7 +17,6 @@ public class RentCollectionSubscriptionController
   @SubscriptionMapping
   public Flux<RentCollectionSummary> rentCollectionUpdates(@Argument Long leaseId)
   {
-    System.out.println("Subscription requested for leaseId: " + leaseId);
     return publisher.subscribe(leaseId);
   }
 }

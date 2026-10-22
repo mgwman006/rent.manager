@@ -46,11 +46,7 @@ public class PaymentBlockService
 
     paymentBlock.addTransaction(paymentTransaction);
     paymentBlockRepository.save(paymentBlock);
-    eventPublisher.publishEvent(
-      new RentPaymentRecordedEvent(
-        paymentBlock.getLease().getId()
-      )
-    );
+    eventPublisher.publishEvent(new RentPaymentRecordedEvent(paymentBlock.getLease().getId()));
   }
 
   @Transactional

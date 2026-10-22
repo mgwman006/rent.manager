@@ -1,6 +1,4 @@
 
-
-
 type Tenant {
     id: ID!
     userId: ID!

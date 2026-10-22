@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
 
 
 @Service
@@ -79,6 +80,7 @@ public class LeaseService
     return rentCalculator.getMonthlyCollectionSummary(paymentBlocks, month, year);
   }
 
+  @Cacheable(value = "rent-summary", key = "#leaseId")
   public RentCollectionSummary getLeasePaymentStatus(Long leaseId)
   {
     Lease lease = leaseRepository.findById(leaseId)
