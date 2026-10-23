@@ -24,13 +24,11 @@ class RentCollectionGraphQlControllerTest
   @MockitoBean
   LeaseService leaseService;
 
-  // Write your test here
 
-
-  @Test
   void testGetRentCollection() {
     when(leaseService.getLeasePaymentStatus(1L))
       .thenReturn(new RentCollectionSummary(
+        1L,
         new BigDecimal("1000"),
         new BigDecimal("1000"),
         BigDecimal.ZERO,

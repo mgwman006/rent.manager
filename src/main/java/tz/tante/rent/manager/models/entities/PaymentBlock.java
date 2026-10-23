@@ -38,6 +38,7 @@ public class PaymentBlock extends BaseEntity {
     cascade = CascadeType.ALL,
     orphanRemoval = true
   )
+  @Builder.Default
   private List<PaymentTransaction> transactions = new ArrayList<>();
 
   public void addTransaction(PaymentTransaction transaction) {
