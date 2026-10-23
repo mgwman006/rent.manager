@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import tz.tante.rent.manager.enums.LeaseInitiator;
 import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.PaymentMethod;
-import tz.tante.rent.manager.events.RentPaymentRecordedEvent;
+import tz.tante.rent.manager.services.graphql.RentPaymentRecordedEvent;
 import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.payments.PaymentTransactionCreateDTO;
 import tz.tante.rent.manager.models.entities.Lease;

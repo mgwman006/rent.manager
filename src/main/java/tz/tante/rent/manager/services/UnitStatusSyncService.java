@@ -57,25 +57,16 @@ public class UnitStatusSyncService {
         if (exception instanceof FeignException feignException
           && feignException.status() >= 400
           && feignException.status() < 500
-          && feignException.status() != 429) {
-
+          && feignException.status() != 429)
+        {
           sync.setStatus(SyncStatus.FAILED);
-
-          log.error(
-            "Permanent unit sync failure: id={}, unitId={}, HTTP status={}",
-            sync.getId(),
-            sync.getUnitId(),
-            feignException.status());
-
+          log.error("Permanent unit sync failure: id={}, unitId={}, HTTP status={}", sync.getId(), sync.getUnitId(), feignException.status());
         }
         else
         {
           long delaySeconds = Math.min(30L * (1L << Math.min(sync.getAttempts() - 1, 7)), 3600L);
-
           sync.setNextRetryAt(LocalDateTime.now().plusSeconds(delaySeconds));
-
-          log.warn("Transient unit sync failure: id={}, unitId={}, attempts={}, nextRetryAt={}", sync.getId(),
-            sync.getUnitId(), sync.getAttempts(), sync.getNextRetryAt(), exception);
+          log.warn("Transient unit sync failure: id={}, unitId={}, attempts={}, nextRetryAt={}", sync.getId(), sync.getUnitId(), sync.getAttempts(), sync.getNextRetryAt(), exception);
         }
 
 

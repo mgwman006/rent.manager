@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 
+import java.util.Map;
+
 import static tz.tante.rent.manager.utilities.Constant.*;
 
 @Configuration
@@ -50,7 +52,7 @@ public class RabbitMQConfig
       true,
       false,
       false,
-      java.util.Map.of(
+      Map.of(
         "x-dead-letter-exchange", RABBITMQ_NOTIFICATION_DEAD_LETTER_EXCHANGE,
         "x-dead-letter-routing-key", RABBITMQ_NOTIFICATION_DEAD_LETTER_ROUTING_KEY
       )

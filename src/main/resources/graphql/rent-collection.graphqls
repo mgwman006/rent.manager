@@ -6,6 +6,12 @@ type Subscription {
     rentCollectionUpdates(leaseId: ID!): RentCollectionSummary!
 }
 
+type Mutation {
+    createTenant(input: TenantInput!): Tenant!
+    updateTenant(id: ID!, input: TenantInput!): Tenant
+    deleteTenant(id: ID!): Boolean!
+}
+
 type RentCollectionSummary {
     leaseId: ID!
     totalExpectedAmount: BigDecimal!
@@ -24,6 +30,20 @@ type PaymentBlockSummary {
     endDate: String
     dueDate: String
     status: String!
+}
+
+type Tenant {
+    id: ID!
+    userId: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    phoneNumber: String!
+}
+
+input TenantInput {
+    email: String
+    phoneNumber: String!
 }
 
 scalar BigDecimal

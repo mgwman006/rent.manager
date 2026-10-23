@@ -1,4 +1,4 @@
-package tz.tante.rent.manager.events;
+package tz.tante.rent.manager.services.graphql;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
@@ -8,7 +8,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
 import tz.tante.rent.manager.services.LeaseService;
-import tz.tante.rent.manager.services.graphql.RentCollectionSubscriptionPublisher;
 
 @Component
 @RequiredArgsConstructor

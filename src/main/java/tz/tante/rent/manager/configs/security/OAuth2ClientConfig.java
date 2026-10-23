@@ -23,6 +23,4 @@ public class OAuth2ClientConfig {
     clientManager.setAuthorizedClientProvider(provider);
     return clientManager;
   }
-
-
 }

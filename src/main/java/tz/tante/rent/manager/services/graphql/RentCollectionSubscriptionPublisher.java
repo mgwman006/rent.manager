@@ -18,9 +18,9 @@ public class RentCollectionSubscriptionPublisher
 
   public Flux<RentCollectionSummary> subscribe(Long leaseId)
   {
-    return sink.asFlux()
-      .filter(summary ->
-        summary.leaseId().equals(leaseId));
+    return sink
+      .asFlux()
+      .filter(summary -> summary.leaseId().equals(leaseId));
   }
 }
 

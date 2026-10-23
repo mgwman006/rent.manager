@@ -4,19 +4,20 @@ package tz.tante.rent.manager.services;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
 import tz.tante.rent.manager.enums.PaymentStatus;
-import tz.tante.rent.manager.events.RentPaymentRecordedEvent;
+import tz.tante.rent.manager.services.graphql.RentPaymentRecordedEvent;
 import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.payments.PaymentTransactionCreateDTO;
 import tz.tante.rent.manager.models.entities.PaymentBlock;
 import tz.tante.rent.manager.models.entities.PaymentTransaction;
 import tz.tante.rent.manager.repositories.PaymentBlockRepository;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 
 @Setter
