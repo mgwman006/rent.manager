@@ -50,11 +50,11 @@ jobs:
 
           ssh -o StrictHostKeyChecking=no -i private_key \
           ${{ secrets.RENT_MANAGER_SERVER_USER }}@${{ secrets.RENT_MANAGER_SERVER_HOST_IP }} \
-          "DB_URL='${{ secrets.DB_URL }}' \
-           DB_USERNAME='${{ secrets.RENT_MANAGER_SERVER_DB_USERNAME }}' \
-           DB_PASSWORD='${{ secrets.RENT_MANAGER_SERVER_DB_PASSWORD }}' \
-           AUTH_ISSUER_URI='${{ secrets.AUTH_ISSUER_URI }}' \
-           PROPERTY_MANAGER_BASE_URL='${{ secrets.PROPERTY_MANAGER_BASE_URL }}' \
+          "DB_URL='$DB_URL' \
+           DB_USERNAME='$DB_USERNAME' \
+           DB_PASSWORD='$DB_PASSWORD' \
+           AUTH_ISSUER_URI='$AUTH_ISSUER_URI' \
+           PROPERTY_MANAGER_BASE_URL='$PROPERTY_MANAGER_BASE_URL' \
            bash -s" << 'EOF'
 
           set -e
