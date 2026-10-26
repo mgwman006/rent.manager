@@ -1,0 +1,85 @@
+name: Deploy Rent Manager to Prod Environment
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: PROD
+
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      AUTH_ISSUER_URI: ${{ secrets.AUTH_ISSUER_URI }}
+      PROPERTY_MANAGER_BASE_URL: ${{ secrets.PROPERTY_MANAGER_BASE_URL }}
+      SERVER_PORT: 8083
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Build
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker (local build only)
+        run: echo "Building Docker image..."
+
+      - name: Build Docker image
+        run: docker buildx build --platform linux/amd64 -t rent-manager:prod --load .
+
+      - name: Save Docker image as tar
+        run: docker save rent-manager:prod | gzip > rent-manager.tar.gz
+
+      - name: Copy image to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.RENT_MANAGER_SERVER_HOST_IP }}
+          username: ${{ secrets.RENT_MANAGER_SERVER_USER }}
+          key: ${{ secrets.RENT_MANAGER_SERVER_PRIVATE_KEY }}
+          source: "rent-manager.tar.gz"
+          target: "/home/ubuntu/rent-manager"
+
+      - name: Deploy on EC2
+        run: |
+          echo "${{ secrets.RENT_MANAGER_SERVER_PRIVATE_KEY }}" > private_key
+          chmod 600 private_key
+
+          ssh -o StrictHostKeyChecking=no -i private_key \
+          ${{ secrets.RENT_MANAGER_SERVER_USER }}@${{ secrets.RENT_MANAGER_SERVER_HOST_IP }} \
+          "DB_URL='${{ secrets.DB_URL }}' \
+           DB_USERNAME='${{ secrets.RENT_MANAGER_SERVER_DB_USERNAME }}' \
+           DB_PASSWORD='${{ secrets.RENT_MANAGER_SERVER_DB_PASSWORD }}' \
+           AUTH_ISSUER_URI='${{ secrets.AUTH_ISSUER_URI }}' \
+           PROPERTY_MANAGER_BASE_URL='${{ secrets.PROPERTY_MANAGER_BASE_URL }}' \
+           bash -s" << 'EOF'
+
+          set -e
+
+          cd /home/ubuntu/rent-manager
+
+          echo "Stopping old container..."
+          sudo docker stop rent-manager || true
+          sudo docker rm rent-manager || true
+
+          echo "Loading new image..."
+          gunzip -c rent-manager.tar.gz | sudo docker load
+
+          echo "Starting new container..."
+          sudo docker run -d \
+            --name rent-manager \
+            --restart always \
+            -p 8083:8083 \
+            -e DB_URL="$DB_URL" \
+            -e DB_USERNAME="$DB_USERNAME" \
+            -e DB_PASSWORD="$DB_PASSWORD" \
+            -e AUTH_ISSUER_URI="$AUTH_ISSUER_URI" \
+            -e PROPERTY_MANAGER_BASE_URL="$PROPERTY_MANAGER_BASE_URL" \
+            rent-manager:dev
+
+          EOF
+
+          rm private_key
