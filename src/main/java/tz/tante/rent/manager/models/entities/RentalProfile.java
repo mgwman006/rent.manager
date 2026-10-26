@@ -17,12 +17,16 @@ public class RentalProfile extends BaseEntity
 {
   private String name;
 
+  @Column(unique = true, nullable = false)
   private String phoneNumber;
 
+  @Column(unique = true)
   private String email;
 
+  @Column(unique = true)
   private Long organizationId;
 
+  @Column(unique = true, nullable = false)
   private Long userId;
 
   @Enumerated(EnumType.STRING)

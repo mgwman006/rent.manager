@@ -1,20 +1,20 @@
 package tz.tante.rent.manager.models.dtos.responses;
 
-import tz.tante.rent.manager.enums.RentPeriod;
+import tz.tante.rent.manager.enums.LeaseInitiator;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 public record LeaseDetailsDTO(
   String referenceNumber,
   long id,
+  long unitId,
+  LeaseInitiator initiatedBy,
   String startDate,
   String endDate,
-  BigDecimal rentAmount,
-  String currency,
-  RentPeriod rentPeriod,
+  RentDTO rent,
+  boolean fullLeasePaymentRequired,
   String status,
-  Long tenantId,
-  String tenantFirstName,
-  String tenantLastName)
+  TenantDetailsDTO tenant,
+  List<LeaseInvitationDetailsDTO> invitations)
 {
 }

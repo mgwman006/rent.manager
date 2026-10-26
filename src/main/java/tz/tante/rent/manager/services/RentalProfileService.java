@@ -19,6 +19,7 @@ import tz.tante.rent.manager.models.dtos.responses.rentalprofiles.RentalProfileD
 import tz.tante.rent.manager.models.entities.RentReceivingAccount;
 import tz.tante.rent.manager.models.entities.RentalProfile;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
+import tz.tante.rent.manager.utilities.Utils;
 
 
 @Service
@@ -34,7 +35,7 @@ public class RentalProfileService
   {
     try
     {
-      Optional<RentalProfile> rentalProfileOptional = rentalProfileRepository.findByPhoneNumber(createRentalProfileDTO.phoneNumber());
+      Optional<RentalProfile> rentalProfileOptional = rentalProfileRepository.findByPhoneNumber(Utils.normalizePhone(createRentalProfileDTO.phoneNumber()));
       if (rentalProfileOptional.isPresent())
       {
         throw new ResourceExistException("Rental profile with phone number " + createRentalProfileDTO.phoneNumber() + " already exists.");
@@ -43,7 +44,7 @@ public class RentalProfileService
       RentalProfile rentalProfile = new RentalProfile();
       rentalProfile.setUserId(createRentalProfileDTO.userId());
       rentalProfile.setOrganizationId(createRentalProfileDTO.organizationId());
-      rentalProfile.setPhoneNumber(createRentalProfileDTO.phoneNumber());
+      rentalProfile.setPhoneNumber(Utils.normalizePhone(createRentalProfileDTO.phoneNumber()));
       rentalProfile.setEmail(createRentalProfileDTO.email());
       rentalProfile.setName(createRentalProfileDTO.name());
       rentalProfile.setType(createRentalProfileDTO.type());

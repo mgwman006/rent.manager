@@ -1,14 +1,11 @@
 package tz.tante.rent.manager.models.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import tz.tante.rent.manager.enums.LeaseInitiator;
 import tz.tante.rent.manager.enums.LeaseStatus;
-import tz.tante.rent.manager.enums.RentPeriod;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +13,9 @@ import java.util.Set;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "leases")
 public class Lease extends BaseEntity
@@ -29,64 +29,60 @@ public class Lease extends BaseEntity
   @Column(nullable = false)
   private LocalDate endDate;
 
-  @Column(nullable = false, precision = 12, scale = 2)
-  private BigDecimal rentAmount;
+  @Column(nullable = false)
+  private boolean fullLeasePaymentRequired;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private RentPeriod rentPeriod;
-
-  @Column(nullable = false)
-  private String currency;
-
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = false, length = 20)
   private LeaseStatus status;
 
   private Long unitId;
 
-  @Column(nullable = true)
-  private Long tenantId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "tenant_id")
+  Tenant tenant;
 
-  @ManyToOne
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private LeaseInitiator initiatedBy;
+
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "rental_profile_id")
-  RentalProfile rentalProfile;
+  private RentalProfile rentalProfile;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "rent_id")
+  private Rent rent;
 
   @OneToMany(
     mappedBy = "lease",
     cascade = CascadeType.ALL,
     orphanRemoval = true
   )
-  private List<Payment> payments = new ArrayList<>();
+  private List<PaymentBlock> paymentBlocks = new ArrayList<>();
 
   @OneToMany(
     mappedBy = "lease",
     cascade = CascadeType.ALL,
     fetch = FetchType.LAZY
   )
-  private Set<TenantInvitation> tenantInvitations = new HashSet<>();
+  private Set<LeaseInvitation> invitations = new HashSet<>();
 
-  public void addTenantInvitation(TenantInvitation invitation) {
-    tenantInvitations.add(invitation);
+  public void addInvitation(LeaseInvitation invitation)
+  {
+    invitations.add(invitation);
     invitation.setLease(this);
   }
 
-  public boolean isActive()
-  {
-    LocalDate today = LocalDate.now();
-    return status == LeaseStatus.ACTIVE
-      && !today.isBefore(startDate)
-      && !today.isAfter(endDate);
+  public void replacePaymentBlocks(List<PaymentBlock> paymentBlocks) {
+    this.paymentBlocks.clear();
+
+    paymentBlocks.forEach(this::addPaymentBlock);
   }
 
-  public String generateReferenceNumber()
-  {
-    return this.referenceNumber = String.format(
-      "LS-RP%d-U%d-T%d-%s-%s",
-      rentalProfile.getId(),
-      unitId,
-      startDate.format(DateTimeFormatter.BASIC_ISO_DATE),
-      endDate.format(DateTimeFormatter.BASIC_ISO_DATE)
-    );
+  public void addPaymentBlock(PaymentBlock paymentBlock) {
+    paymentBlock.setLease(this);
+    this.paymentBlocks.add(paymentBlock);
   }
+
 }

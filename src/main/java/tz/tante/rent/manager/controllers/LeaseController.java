@@ -5,8 +5,12 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tz.tante.rent.manager.engines.rent.dtos.MonthlyCollectionSummary;
+import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
+import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
+import tz.tante.rent.manager.models.dtos.requests.leases.LeaseTermsUpdateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.services.LeaseService;
 
@@ -19,19 +23,105 @@ public class LeaseController
 {
   private final LeaseService leaseService;
 
-  @GetMapping("/rental-profile/{rentalProfileId}")
-  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getLeasesByRentalProfile(@PathVariable Long rentalProfileId)
+
+  /*------------------------------- LANDLORD POST ENDPOINTS ----------------------------------*/
+  @PostMapping("/landlord")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLeaseByLandlord(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
   {
-    List<LeaseDetailsDTO> leases = leaseService.getLeasesByRentalProfile(rentalProfileId);
+    LeaseDetailsDTO leaseDetails = leaseService.createLeaseInitiatedByLandlord(leaseCreateDTO);
+    return ResponseEntity.status(HttpStatus.CREATED)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
+  }
+
+  /*------------------------------- TENANT POST ENDPOINTS ----------------------------------*/
+  @PostMapping("/tenant")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLeaseByTenant(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
+  {
+    LeaseDetailsDTO leaseDetails = leaseService.createLeaseInitiatedByTenant(leaseCreateDTO);
+    return ResponseEntity.status(HttpStatus.CREATED)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
+  }
+
+
+  /*------------------------------- GENERAL PATCH ENDPOINTS ----------------------------------*/
+  @PatchMapping("/{leaseId}/terms")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> updateLeaseTerms(@PathVariable Long leaseId, @Valid @RequestBody LeaseTermsUpdateDTO leaseTermsUpdateDTO)
+  {
+    LeaseDetailsDTO leaseDetails = leaseService.updateLeaseTerms(leaseId, leaseTermsUpdateDTO);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
+  }
+
+
+  /*------------------------------- LANDLORD GET ENDPOINTS ----------------------------------*/
+  @GetMapping("/rental-profile/{rentalProfileId}")
+  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getLeasesByRentalProfile(@PathVariable Long rentalProfileId, @RequestParam(required = false) LeaseStatus status)
+  {
+    List<LeaseDetailsDTO> leases;
+    if(status == null)
+    {
+      leases = leaseService.getAllLeasesByRentalProfile(rentalProfileId);
+    }
+    else
+    {
+      leases = leaseService.getLeasesByRentalProfileAndStatus(rentalProfileId, status);
+    }
+
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(leases, HttpStatus.OK.value()));
   }
 
-  @PostMapping
-  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> createLease(@Valid @RequestBody LeaseCreateDTO leaseCreateDTO)
+  @GetMapping("/rental-profile/{rentalProfileId}/monthly-rent-summary")
+  public ResponseEntity<ApiResponse<MonthlyCollectionSummary>> getMonthlyRentSummaryByRentalProfile(
+    @PathVariable Long rentalProfileId,@RequestParam int month,@RequestParam int year)
   {
-    LeaseDetailsDTO leaseDetails = leaseService.createLease(leaseCreateDTO);
-    return ResponseEntity.status(HttpStatus.CREATED)
-      .body(ApiResponse.success(leaseDetails, HttpStatus.CREATED.value()));
+    MonthlyCollectionSummary monthlyCollectionSummary = leaseService.getMonthlyCollectionSummary(rentalProfileId, month, year);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(monthlyCollectionSummary, HttpStatus.OK.value()));
+  }
+
+
+
+  /*------------------------------- TENANT GET ENDPOINTS ----------------------------------*/
+  @GetMapping("/tenant/{tenantId}")
+  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getActiveLeasesByTenant(@PathVariable Long tenantId, @RequestParam(required = false) LeaseStatus status)
+  {
+    List<LeaseDetailsDTO> leases;
+    if(status == null)
+    {
+      leases = leaseService.getAllLeasesByTenant(tenantId);
+    }
+    else
+    {
+      leases = leaseService.getLeasesByTenantAndStatus(tenantId, status);
+    }
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leases, HttpStatus.OK.value()));
+  }
+
+
+  /*------------------------------- GENERAL GET ENDPOINTS ----------------------------------*/
+  @GetMapping
+  public ResponseEntity<ApiResponse<List<LeaseDetailsDTO>>> getAllLeases()
+  {
+    List<LeaseDetailsDTO> leases = leaseService.getAllLeases();
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leases, HttpStatus.OK.value()));
+  }
+
+  @GetMapping("/{leaseId}")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> getLeaseById(@PathVariable Long leaseId)
+  {
+    LeaseDetailsDTO leaseDetails = leaseService.getLeaseById(leaseId);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
+  }
+
+  @GetMapping("/rent/summary/{leaseId}")
+  public ResponseEntity<ApiResponse<RentCollectionSummary>> getLeasePaymentStatus(@PathVariable Long leaseId)
+  {
+    RentCollectionSummary rentCollectionSummary = leaseService.getLeasePaymentStatus(leaseId);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(rentCollectionSummary, HttpStatus.OK.value()));
   }
 }

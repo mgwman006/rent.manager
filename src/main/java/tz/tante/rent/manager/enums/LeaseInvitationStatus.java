@@ -1,8 +1,9 @@
 package tz.tante.rent.manager.enums;
 
-public enum TenantInvitationStatus
+public enum LeaseInvitationStatus
 {
   PENDING,
+  SENT,
   ACCEPTED,
   EXPIRED,
   REJECTED,
