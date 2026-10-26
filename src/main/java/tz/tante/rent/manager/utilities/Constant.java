@@ -13,4 +13,16 @@ public class Constant
   public static String RESOURCE_NOT_FOUND_MESSAGE = "RESOURCE_NOT_FOUND";
   public static String RESOURCE_ALREADY_EXISTS_MESSAGE = "RESOURCE_ALREADY_EXISTS";
   public static String VERSION_CONFLICT_MESSAGE = "VERSION_CONFLICT";
+  public static final String UNAUTHORIZED_MESSAGE = "UNAUTHORIZED";
+  public static final String BEARER_AUTH = "bearerAuth";
+  public static final String TENANT_NOT_FOUND_BY_TOKEN_MESSAGE = "Tenant invitation not found with token: ";
+  public static final String NOT_FOUND = " not found";
+  public static final String RABBITMQ_NOTIFICATION_EXCHANGE = "notification.exchange";
+  public static final String RABBITMQ_NOTIFICATION_RECEIVED_ROUTING_KEY = "notification.received";
+  public static final String RABBITMQ_NOTIFICATION_DEAD_LETTER_EXCHANGE = "notification.dlx";
+  public static final String RABBITMQ_NOTIFICATION_DEAD_LETTER_QUEUE = "notification.dlq";
+  public static final String RABBITMQ_NOTIFICATION_DEAD_LETTER_ROUTING_KEY = "notification.failed";
+  public static final String RABBITMQ_NOTIFICATION_QUEUE = "notification.queue";
+
+
 }
