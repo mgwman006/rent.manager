@@ -1,4 +1,4 @@
-name: Deploy Rent Manager to Prod Environment
+name: Prod Environment - Deploy Rent Manager
 
 on:
   push:
@@ -78,7 +78,7 @@ jobs:
             -e DB_PASSWORD="$DB_PASSWORD" \
             -e AUTH_ISSUER_URI="$AUTH_ISSUER_URI" \
             -e PROPERTY_MANAGER_BASE_URL="$PROPERTY_MANAGER_BASE_URL" \
-            rent-manager:dev
+            rent-manager:prod
 
           EOF
 
