@@ -17,6 +17,7 @@ jobs:
       AUTH_ISSUER_URI: ${{ secrets.AUTH_ISSUER_URI }}
       PROPERTY_MANAGER_BASE_URL: ${{ secrets.PROPERTY_MANAGER_BASE_URL }}
       SERVER_PORT: 8083
+      RENT_MANAGER_CLIENT_SECRET: ${{ secrets.RENT_MANAGER_CLIENT_SECRET }}
 
     steps:
       - name: Checkout code
@@ -55,6 +56,7 @@ jobs:
            DB_PASSWORD='${{ secrets.RENT_MANAGER_SERVER_DB_PASSWORD }}' \
            AUTH_ISSUER_URI='${{ secrets.AUTH_ISSUER_URI }}' \
            PROPERTY_MANAGER_BASE_URL='${{ secrets.PROPERTY_MANAGER_BASE_URL }}' \
+           RENT_MANAGER_CLIENT_SECRET='${{ secrets.RENT_MANAGER_CLIENT_SECRET }}' \
            bash -s" << 'EOF'
 
           set -e
@@ -78,6 +80,7 @@ jobs:
             -e DB_PASSWORD="$DB_PASSWORD" \
             -e AUTH_ISSUER_URI="$AUTH_ISSUER_URI" \
             -e PROPERTY_MANAGER_BASE_URL="$PROPERTY_MANAGER_BASE_URL" \
+            -e RENT_MANAGER_CLIENT_SECRET="$RENT_MANAGER_CLIENT_SECRET" \
             rent-manager:prod
 
           EOF
