@@ -1,4 +1,4 @@
-package tz.tante.rent.manager.notification;
+package tz.tante.rent.manager.messaging.notification;
 
 public record SmsResponse(
   String messageId,

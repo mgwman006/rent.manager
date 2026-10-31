@@ -13,7 +13,6 @@ import java.util.Map;
 
 import static tz.tante.rent.manager.utilities.Constant.*;
 
-@Configuration
 public class RabbitMQConfig
 {
   @Bean

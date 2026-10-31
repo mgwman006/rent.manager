@@ -18,19 +18,19 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         schema_update:
           unique_constraint_strategy: RECREATE_QUIETLY
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: tante
-    password: tante_dev_2026
-    listener:
-      simple:
-        retry:
-          enabled: true
-          max-attempts: 3
-          initial-interval: 1000
-          multiplier: 2.0
-          max-interval: 5000
+#  rabbitmq:
+#    host: localhost
+#    port: 5672
+#    username: tante
+#    password: tante_dev_2026
+#    listener:
+#      simple:
+#        retry:
+#          enabled: true
+#          max-attempts: 3
+#          initial-interval: 1000
+#          multiplier: 2.0
+#          max-interval: 5000
   security:
     oauth2:
       client:
@@ -84,3 +84,14 @@ property:
     manager:
       base:
         url: ${PROPERTY_MANAGER_BASE_URL}
+
+notification:
+  sms:
+    provider:
+      afrika-talking:
+        api:
+          url:
+            bulk: https://api.africastalking.com/version1/messaging/bulk
+          key: ${AFRIKA_TALKING_API_KEY}
+          username: notificationmanager
+

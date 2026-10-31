@@ -29,15 +29,9 @@ public class UnitStatusSyncService {
 
     for (UnitStatusSync sync : pendingSyncs)
     {
-      if (unitStatusSyncRepository.existsByUnitIdAndIdLessThanAndStatus(
-        sync.getUnitId(),
-        sync.getId(),
-        SyncStatus.PENDING)) {
-        log.debug(
-          "Skipping sync because an earlier sync is pending: id={}, unitId={}",
-          sync.getId(),
-          sync.getUnitId()
-        );
+      if (unitStatusSyncRepository.existsByUnitIdAndIdLessThanAndStatus(sync.getUnitId(), sync.getId(), SyncStatus.PENDING))
+      {
+        log.debug("Skipping sync because an earlier sync is pending: id={}, unitId={}", sync.getId(), sync.getUnitId());
         continue;
       }
 
@@ -68,8 +62,6 @@ public class UnitStatusSyncService {
           sync.setNextRetryAt(LocalDateTime.now().plusSeconds(delaySeconds));
           log.warn("Transient unit sync failure: id={}, unitId={}, attempts={}, nextRetryAt={}", sync.getId(), sync.getUnitId(), sync.getAttempts(), sync.getNextRetryAt(), exception);
         }
-
-
 
         unitStatusSyncRepository.save(sync);
       }
