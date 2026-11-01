@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import tz.tante.rent.manager.enums.LeaseInvitationStatus;
 import tz.tante.rent.manager.models.entities.LeaseInvitation;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,4 +16,6 @@ public interface LeaseInvitationRepository extends JpaRepository<LeaseInvitation
   List<LeaseInvitation> findByPhoneNumberAndStatus(String phoneNumber, LeaseInvitationStatus leaseInvitationStatus);
 
   List<LeaseInvitation> findByStatus(LeaseInvitationStatus leaseInvitationStatus);
+
+  List<LeaseInvitation> findByStatusAndNextRetryAtLessThanEqualOrderByIdAsc(LeaseInvitationStatus leaseInvitationStatus, LocalDateTime nextRetryAt);
 }

@@ -34,9 +34,20 @@ public class LeaseInvitation extends BaseEntity {
 
   private String email;
 
+  private String message;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private LeaseInvitationStatus status;
+
+  @Column(nullable = false)
+  private int attempts = 0;
+
+  @Column(nullable = false)
+  private LocalDateTime nextRetryAt = LocalDateTime.now();
+
+  @Column(columnDefinition = "TEXT")
+  private String lastError;
 
   @Column(nullable = false)
   private LocalDateTime expiresAt;
