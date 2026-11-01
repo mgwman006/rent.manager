@@ -79,6 +79,12 @@ app:
     allowed-headers: "Authorization,Content-Type,Accept,Origin"
     exposed-headers: "Authorization"
     allow-credentials: true
+  tenant:
+    base-url: ${TENANT_APP_BASE_URL:https://tenant.tante.tz}
+    invitation-path: ${TENANT_INVITATION_PATH:/invitations}
+  landlord:
+    base-url: ${LANDLORD_APP_BASE_URL:https://landlord.tante.tz}
+    invitation-path: ${LANDLORD_INVITATION_PATH:/rental-profile/invitations}
 
 property:
     manager:
@@ -92,6 +98,6 @@ notification:
         api:
           url:
             bulk: https://api.africastalking.com/version1/messaging/bulk
-          key: ${AFRIKA_TALKING_API_KEY}
+          key: atsk_c09fe4415d92f0dfce03c9805ec5c49e49beed9c357d71334caebeb418d25c0638733520
           username: notificationmanager
 

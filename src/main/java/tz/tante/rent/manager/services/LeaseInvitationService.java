@@ -55,6 +55,7 @@ public class LeaseInvitationService
     leaseInvitation.setFirstName(request.firstName());
     leaseInvitation.setLastName(request.lastName());
     leaseInvitation.setPhoneNumber(Utils.normalizePhone(request.phoneNumber()));
+    leaseInvitation.setMessage("You have a lease invitation. Please review and accept it.");
     leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
     leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
     leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
