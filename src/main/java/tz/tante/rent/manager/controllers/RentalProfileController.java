@@ -32,6 +32,14 @@ public class RentalProfileController
       .body(ApiResponse.success(rentalProfileDetailsDTO, HttpStatus.CREATED.value()));
   }
 
+  @PatchMapping("/{rentalProfileId}/upgrade/{organizationId}")
+  public ResponseEntity<ApiResponse<RentalProfileDetailsDTO>> upgradeToOrganizationRentalProfile(@PathVariable Long rentalProfileId, @PathVariable Long organizationId)
+  {
+    RentalProfileDetailsDTO rentalProfileDetailsDTO = rentalProfileService.upgradeToOrganizationRentalProfile(rentalProfileId, organizationId);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(rentalProfileDetailsDTO, HttpStatus.OK.value()));
+  }
+
   @GetMapping("/{rentalProfileId}")
   public ResponseEntity<ApiResponse<RentalProfileDetailsDTO>> getRentalProfile(@PathVariable Long rentalProfileId)
   {

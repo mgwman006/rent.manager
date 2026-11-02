@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 
+import tz.tante.rent.manager.enums.RentalProfileType;
 import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
@@ -56,6 +57,23 @@ public class RentalProfileService
     {
       throw new TanteException(exception.getMessage());
     }
+  }
+
+  public RentalProfileDetailsDTO upgradeToOrganizationRentalProfile(Long rentalProfileId, Long organizationId)
+  {
+    RentalProfile rentalProfile = rentalProfileRepository.findById(rentalProfileId)
+      .orElseThrow(() -> new ResourceNotFoundException("Rental profile with ID " + rentalProfileId + " not found."));
+
+    if (rentalProfile.getOrganizationId() != null)
+    {
+      throw new ResourceExistException("Rental profile with ID " + rentalProfileId + " is already associated with an organization of id " + rentalProfile.getOrganizationId() + ".");
+    }
+
+    rentalProfile.setOrganizationId(organizationId);
+    rentalProfile.setType(RentalProfileType.ORGANIZATION);
+    rentalProfile = rentalProfileRepository.save(rentalProfile);
+
+    return getRentalProfileDetailsDTO(rentalProfile);
   }
 
   public RentalProfileDetailsDTO getRentalProfile(Long rentalProfileId)
