@@ -23,6 +23,8 @@ public class LeaseInvitation extends BaseEntity {
   @JoinColumn(name = "lease_id", nullable = false)
   private Lease lease;
 
+  private String providerReference;
+
   @Column(nullable = false)
   private String firstName;
 
@@ -34,9 +36,19 @@ public class LeaseInvitation extends BaseEntity {
 
   private String email;
 
+  private String message;
+
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = false, length = 50)
   private LeaseInvitationStatus status;
+
+  @Column(nullable = false)
+  private int attempts = 0;
+
+  private LocalDateTime nextRetryAt = LocalDateTime.now();
+
+  @Column(columnDefinition = "TEXT")
+  private String lastError;
 
   @Column(nullable = false)
   private LocalDateTime expiresAt;
