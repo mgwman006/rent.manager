@@ -7,5 +7,6 @@ public enum LeaseInvitationStatus
   ACCEPTED,
   EXPIRED,
   REJECTED,
-  CANCELED
+  CANCELED,
+  FAILED
 }

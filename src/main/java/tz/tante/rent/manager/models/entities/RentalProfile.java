@@ -30,7 +30,7 @@ public class RentalProfile extends BaseEntity
   private Long userId;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = false, length = 50)
   private RentalProfileType type;
 
   @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

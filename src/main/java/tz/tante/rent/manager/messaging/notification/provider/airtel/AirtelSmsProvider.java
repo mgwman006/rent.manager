@@ -1,10 +1,10 @@
-package tz.tante.rent.manager.notification.provider.airtel;
+package tz.tante.rent.manager.messaging.notification.provider.airtel;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import tz.tante.rent.manager.notification.SmsProvider;
-import tz.tante.rent.manager.notification.SmsResponse;
+import tz.tante.rent.manager.messaging.notification.SmsProvider;
+import tz.tante.rent.manager.messaging.notification.SmsResponse;
 
 @Component
 @RequiredArgsConstructor

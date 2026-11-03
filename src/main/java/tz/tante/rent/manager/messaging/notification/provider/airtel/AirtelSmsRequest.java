@@ -1,4 +1,4 @@
-package tz.tante.rent.manager.notification.provider.airtel;
+package tz.tante.rent.manager.messaging.notification.provider.airtel;
 
 public record AirtelSmsRequest(
   String partnerCode,
