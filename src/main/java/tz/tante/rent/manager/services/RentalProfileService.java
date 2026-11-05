@@ -5,16 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
 
-import tz.tante.rent.manager.enums.RentalProfileType;
 import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.rentalprofiles.CreateRentalProfileDTO;
+import tz.tante.rent.manager.models.dtos.requests.rentalprofiles.UpgradeRentalProfileDTO;
 import tz.tante.rent.manager.models.dtos.responses.RentReceivingAccountDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.rentalprofiles.RentalProfileDetailsDTO;
 import tz.tante.rent.manager.models.entities.RentReceivingAccount;
@@ -59,7 +58,7 @@ public class RentalProfileService
     }
   }
 
-  public RentalProfileDetailsDTO upgradeToOrganizationRentalProfile(Long rentalProfileId, Long organizationId)
+  public RentalProfileDetailsDTO upgradeToOrganizationRentalProfile(Long rentalProfileId, UpgradeRentalProfileDTO request)
   {
     RentalProfile rentalProfile = rentalProfileRepository.findById(rentalProfileId)
       .orElseThrow(() -> new ResourceNotFoundException("Rental profile with ID " + rentalProfileId + " not found."));
@@ -69,8 +68,8 @@ public class RentalProfileService
       throw new ResourceExistException("Rental profile with ID " + rentalProfileId + " is already associated with an organization of id " + rentalProfile.getOrganizationId() + ".");
     }
 
-    rentalProfile.setOrganizationId(organizationId);
-    rentalProfile.setType(RentalProfileType.ORGANIZATION);
+    rentalProfile.setOrganizationId(request.organizationId());
+    rentalProfile.setType(request.rentalProfileType());
     rentalProfile = rentalProfileRepository.save(rentalProfile);
 
     return getRentalProfileDetailsDTO(rentalProfile);
