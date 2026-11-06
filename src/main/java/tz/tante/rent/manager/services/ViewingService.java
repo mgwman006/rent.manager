@@ -8,19 +8,19 @@ import tz.tante.rent.manager.enums.ViewingSlotStatus;
 import tz.tante.rent.manager.enums.ViewingStatus;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
-import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingRequestDTO;
+import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingBookingDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingSlotDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.RecordViewingOutcomeDTO;
 import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingOutcomeDetailsDTO;
-import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingRequestDetailsDTO;
+import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingBookingDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingSlotDetailsDTO;
 import tz.tante.rent.manager.models.entities.RentalProfile;
+import tz.tante.rent.manager.models.entities.ViewingBooking;
 import tz.tante.rent.manager.models.entities.ViewingOutcome;
-import tz.tante.rent.manager.models.entities.ViewingRequest;
 import tz.tante.rent.manager.models.entities.ViewingSlot;
 import tz.tante.rent.manager.repositories.RentalProfileRepository;
+import tz.tante.rent.manager.repositories.ViewingBookingRepository;
 import tz.tante.rent.manager.repositories.ViewingOutcomeRepository;
-import tz.tante.rent.manager.repositories.ViewingRequestRepository;
 import tz.tante.rent.manager.repositories.ViewingSlotRepository;
 
 import java.math.BigDecimal;
@@ -32,7 +32,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ViewingService {
   private final ViewingSlotRepository viewingSlotRepository;
-  private final ViewingRequestRepository viewingRequestRepository;
+  private final ViewingBookingRepository viewingBookingRepository;
   private final ViewingOutcomeRepository viewingOutcomeRepository;
   private final RentalProfileRepository rentalProfileRepository;
 
@@ -49,9 +49,11 @@ public class ViewingService {
       throw new TanteException("Viewing fee cannot be negative.");
     }
 
-    if (viewingSlotRepository.findByRentalProfileId(rentalProfileId).stream()
+    boolean overlapsExistingSlot = viewingSlotRepository.findByRentalProfileId(rentalProfileId).stream()
       .filter(slot -> slot.getStatus() != ViewingSlotStatus.CANCELLED)
-      .anyMatch(slot -> !request.endTime().isBefore(slot.getStartTime()) && !request.startTime().isAfter(slot.getEndTime()))) {
+      .anyMatch(slot -> !request.endTime().isBefore(slot.getStartTime()) && !request.startTime().isAfter(slot.getEndTime()));
+
+    if (overlapsExistingSlot) {
       throw new TanteException("This viewing slot overlaps with an existing slot for this agency profile.");
     }
 
@@ -96,7 +98,7 @@ public class ViewingService {
   }
 
   @Transactional
-  public ViewingRequestDetailsDTO createViewingRequest(CreateViewingRequestDTO request) {
+  public ViewingBookingDetailsDTO createViewingBooking(CreateViewingBookingDTO request) {
     if (request.requesterUserId() == null) {
       throw new TanteException("Requester user ID is required.");
     }
@@ -105,132 +107,135 @@ public class ViewingService {
       .orElseThrow(() -> new ResourceNotFoundException("Viewing slot with ID " + request.slotId() + " not found."));
 
     if (viewingSlot.getStatus() == ViewingSlotStatus.CANCELLED) {
-      throw new TanteException("This viewing slot is cancelled and cannot accept new requests.");
+      throw new TanteException("This viewing slot is cancelled and cannot accept new bookings.");
     }
 
-    boolean activeRequestExists = viewingRequestRepository.findBySlotId(viewingSlot.getId()).stream()
-      .anyMatch(existingRequest -> existingRequest.getStatus() != ViewingStatus.REJECTED
-        && existingRequest.getStatus() != ViewingStatus.CANCELLED
-        && existingRequest.getStatus() != ViewingStatus.NO_SHOW
-        && existingRequest.getStatus() != ViewingStatus.COMPLETED);
+    boolean activeBookingExists = viewingBookingRepository.findBySlotId(viewingSlot.getId()).stream()
+      .anyMatch(existingBooking -> existingBooking.getStatus() != ViewingStatus.REJECTED
+        && existingBooking.getStatus() != ViewingStatus.CANCELLED
+        && existingBooking.getStatus() != ViewingStatus.NO_SHOW
+        && existingBooking.getStatus() != ViewingStatus.COMPLETED);
 
-    if (activeRequestExists) {
-      throw new TanteException("This viewing slot already has an active booking request.");
+    if (activeBookingExists) {
+      throw new TanteException("This viewing slot already has an active booking.");
     }
 
-    ViewingRequest viewingRequest = new ViewingRequest();
-    viewingRequest.setSlot(viewingSlot);
-    viewingRequest.setRequesterUserId(request.requesterUserId());
-    viewingRequest.setServiceFee(viewingSlot.getServiceFee());
-    viewingRequest.setNotes(request.notes());
-    viewingRequest.setStatus(ViewingStatus.PENDING);
-    viewingRequest.setFeePaid(false);
+    ViewingBooking booking = new ViewingBooking();
+    booking.setSlot(viewingSlot);
+    booking.setRequesterUserId(request.requesterUserId());
+    booking.setServiceFee(viewingSlot.getServiceFee());
+    booking.setNotes(request.notes());
+    booking.setStatus(ViewingStatus.PENDING);
+    booking.setFeePaid(false);
 
     viewingSlot.setStatus(ViewingSlotStatus.BOOKED);
-    viewingRequest = viewingRequestRepository.save(viewingRequest);
+    booking = viewingBookingRepository.save(booking);
     viewingSlotRepository.save(viewingSlot);
 
-    return toRequestDetails(viewingRequest);
+    return toBookingDetails(booking);
   }
 
-  public List<ViewingRequestDetailsDTO> getRequestsByTenant(Long tenantUserId) {
-    return viewingRequestRepository.findByRequesterUserId(tenantUserId).stream()
-      .sorted(Comparator.comparing(ViewingRequest::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
-      .map(this::toRequestDetails)
+  public List<ViewingBookingDetailsDTO> getBookingsByRequester(Long requesterUserId) {
+    return viewingBookingRepository.findByRequesterUserId(requesterUserId).stream()
+      .sorted(Comparator.comparing(ViewingBooking::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
+      .map(this::toBookingDetails)
       .toList();
   }
 
-  public List<ViewingRequestDetailsDTO> getRequestsByRentalProfile(Long rentalProfileId) {
-    return viewingRequestRepository.findBySlotRentalProfileId(rentalProfileId).stream()
-      .sorted(Comparator.comparing(ViewingRequest::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
-      .map(this::toRequestDetails)
+  public List<ViewingBookingDetailsDTO> getBookingsByRentalProfile(Long rentalProfileId) {
+    return viewingBookingRepository.findBySlotRentalProfileId(rentalProfileId).stream()
+      .sorted(Comparator.comparing(ViewingBooking::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
+      .map(this::toBookingDetails)
       .toList();
   }
 
-  public ViewingRequestDetailsDTO getRequest(Long requestId) {
-    ViewingRequest request = viewingRequestRepository.findById(requestId)
-      .orElseThrow(() -> new ResourceNotFoundException("Viewing request with ID " + requestId + " not found."));
-    return toRequestDetails(request);
+  public ViewingBookingDetailsDTO getBooking(Long bookingId) {
+    ViewingBooking booking = viewingBookingRepository.findById(bookingId)
+      .orElseThrow(() -> new ResourceNotFoundException("Viewing booking with ID " + bookingId + " not found."));
+    return toBookingDetails(booking);
   }
 
   @Transactional
-  public ViewingRequestDetailsDTO approveRequest(Long requestId) {
-    ViewingRequest request = viewingRequestRepository.findById(requestId)
-      .orElseThrow(() -> new ResourceNotFoundException("Viewing request with ID " + requestId + " not found."));
+  public ViewingBookingDetailsDTO approveBooking(Long bookingId) {
+    ViewingBooking booking = viewingBookingRepository.findById(bookingId)
+      .orElseThrow(() -> new ResourceNotFoundException("Viewing booking with ID " + bookingId + " not found."));
 
-    if (request.getStatus() != ViewingStatus.PENDING) {
-      throw new TanteException("Only pending viewing requests can be approved.");
+    if (booking.getStatus() != ViewingStatus.PENDING) {
+      throw new TanteException("Only pending viewing bookings can be approved.");
     }
 
-    request.setStatus(ViewingStatus.APPROVED);
-    request = viewingRequestRepository.save(request);
-    return toRequestDetails(request);
+    booking.setStatus(ViewingStatus.APPROVED);
+    booking = viewingBookingRepository.save(booking);
+    return toBookingDetails(booking);
   }
 
   @Transactional
-  public ViewingRequestDetailsDTO rejectRequest(Long requestId) {
-    ViewingRequest request = viewingRequestRepository.findById(requestId)
-      .orElseThrow(() -> new ResourceNotFoundException("Viewing request with ID " + requestId + " not found."));
+  public ViewingBookingDetailsDTO rejectBooking(Long bookingId) {
+    ViewingBooking booking = viewingBookingRepository.findById(bookingId)
+      .orElseThrow(() -> new ResourceNotFoundException("Viewing booking with ID " + bookingId + " not found."));
 
-    if (request.getStatus() == ViewingStatus.CANCELLED || request.getStatus() == ViewingStatus.COMPLETED || request.getStatus() == ViewingStatus.NO_SHOW) {
-      throw new TanteException("This viewing request cannot be rejected from its current status.");
+    if (booking.getStatus() == ViewingStatus.CANCELLED || booking.getStatus() == ViewingStatus.COMPLETED || booking.getStatus() == ViewingStatus.NO_SHOW) {
+      throw new TanteException("This viewing booking cannot be rejected from its current status.");
     }
 
-    request.setStatus(ViewingStatus.REJECTED);
-    if (viewingRequestRepository.findBySlotId(request.getSlot().getId()).stream()
-      .noneMatch(existingRequest -> existingRequest.getStatus() != ViewingStatus.REJECTED && existingRequest.getStatus() != ViewingStatus.CANCELLED && existingRequest.getStatus() != ViewingStatus.NO_SHOW && existingRequest.getStatus() != ViewingStatus.COMPLETED)) {
-      request.getSlot().setStatus(ViewingSlotStatus.AVAILABLE);
-      viewingSlotRepository.save(request.getSlot());
+    booking.setStatus(ViewingStatus.REJECTED);
+    if (viewingBookingRepository.findBySlotId(booking.getSlot().getId()).stream()
+      .noneMatch(existingBooking -> existingBooking.getStatus() != ViewingStatus.REJECTED
+        && existingBooking.getStatus() != ViewingStatus.CANCELLED
+        && existingBooking.getStatus() != ViewingStatus.NO_SHOW
+        && existingBooking.getStatus() != ViewingStatus.COMPLETED)) {
+      booking.getSlot().setStatus(ViewingSlotStatus.AVAILABLE);
+      viewingSlotRepository.save(booking.getSlot());
     }
 
-    request = viewingRequestRepository.save(request);
-    return toRequestDetails(request);
+    booking = viewingBookingRepository.save(booking);
+    return toBookingDetails(booking);
   }
 
   @Transactional
-  public ViewingRequestDetailsDTO markFeePaid(Long requestId) {
-    ViewingRequest request = viewingRequestRepository.findById(requestId)
-      .orElseThrow(() -> new ResourceNotFoundException("Viewing request with ID " + requestId + " not found."));
+  public ViewingBookingDetailsDTO markFeePaid(Long bookingId) {
+    ViewingBooking booking = viewingBookingRepository.findById(bookingId)
+      .orElseThrow(() -> new ResourceNotFoundException("Viewing booking with ID " + bookingId + " not found."));
 
-    if (request.getStatus() != ViewingStatus.APPROVED && request.getStatus() != ViewingStatus.PENDING) {
-      throw new TanteException("Only approved or pending viewing requests can be marked as paid.");
+    if (booking.getStatus() != ViewingStatus.APPROVED && booking.getStatus() != ViewingStatus.PENDING) {
+      throw new TanteException("Only approved or pending viewing bookings can be marked as paid.");
     }
 
-    request.setFeePaid(true);
-    request.setStatus(ViewingStatus.PAID);
-    request = viewingRequestRepository.save(request);
-    return toRequestDetails(request);
+    booking.setFeePaid(true);
+    booking.setStatus(ViewingStatus.PAID);
+    booking = viewingBookingRepository.save(booking);
+    return toBookingDetails(booking);
   }
 
   @Transactional
-  public ViewingRequestDetailsDTO confirmBooking(Long requestId) {
-    ViewingRequest request = viewingRequestRepository.findById(requestId)
-      .orElseThrow(() -> new ResourceNotFoundException("Viewing request with ID " + requestId + " not found."));
+  public ViewingBookingDetailsDTO confirmBooking(Long bookingId) {
+    ViewingBooking booking = viewingBookingRepository.findById(bookingId)
+      .orElseThrow(() -> new ResourceNotFoundException("Viewing booking with ID " + bookingId + " not found."));
 
-    if (request.getServiceFee().compareTo(BigDecimal.ZERO) > 0 && !request.isFeePaid()) {
+    if (booking.getServiceFee().compareTo(BigDecimal.ZERO) > 0 && !booking.isFeePaid()) {
       throw new TanteException("The viewing fee must be paid before the booking can be confirmed.");
     }
 
-    if (request.getStatus() != ViewingStatus.PAID && request.getStatus() != ViewingStatus.APPROVED) {
-      throw new TanteException("Only approved or paid viewing requests can be confirmed.");
+    if (booking.getStatus() != ViewingStatus.PAID && booking.getStatus() != ViewingStatus.APPROVED) {
+      throw new TanteException("Only approved or paid viewing bookings can be confirmed.");
     }
 
-    request.setStatus(ViewingStatus.CONFIRMED);
-    request = viewingRequestRepository.save(request);
-    return toRequestDetails(request);
+    booking.setStatus(ViewingStatus.CONFIRMED);
+    booking = viewingBookingRepository.save(booking);
+    return toBookingDetails(booking);
   }
 
   @Transactional
-  public ViewingRequestDetailsDTO recordOutcome(Long requestId, RecordViewingOutcomeDTO request) {
-    ViewingRequest viewingRequest = viewingRequestRepository.findById(requestId)
-      .orElseThrow(() -> new ResourceNotFoundException("Viewing request with ID " + requestId + " not found."));
+  public ViewingBookingDetailsDTO recordOutcome(Long bookingId, RecordViewingOutcomeDTO request) {
+    ViewingBooking booking = viewingBookingRepository.findById(bookingId)
+      .orElseThrow(() -> new ResourceNotFoundException("Viewing booking with ID " + bookingId + " not found."));
 
-    if (viewingRequest.getStatus() != ViewingStatus.CONFIRMED) {
-      throw new TanteException("Only confirmed viewing requests can have an outcome recorded.");
+    if (booking.getStatus() != ViewingStatus.CONFIRMED) {
+      throw new TanteException("Only confirmed viewing bookings can have an outcome recorded.");
     }
 
     ViewingOutcome viewingOutcome = new ViewingOutcome();
-    viewingOutcome.setRequest(viewingRequest);
+    viewingOutcome.setBooking(booking);
     viewingOutcome.setType(request.outcome());
     viewingOutcome.setNotes(request.notes());
     viewingOutcome.setRecordedAt(LocalDateTime.now());
@@ -238,16 +243,16 @@ public class ViewingService {
     viewingOutcome = viewingOutcomeRepository.save(viewingOutcome);
 
     switch (request.outcome()) {
-      case COMPLETED -> viewingRequest.setStatus(ViewingStatus.COMPLETED);
-      case NO_SHOW -> viewingRequest.setStatus(ViewingStatus.NO_SHOW);
-      case CANCELLED -> viewingRequest.setStatus(ViewingStatus.CANCELLED);
-      case RESCHEDULED -> viewingRequest.setStatus(ViewingStatus.PENDING);
+      case COMPLETED -> booking.setStatus(ViewingStatus.COMPLETED);
+      case NO_SHOW -> booking.setStatus(ViewingStatus.NO_SHOW);
+      case CANCELLED -> booking.setStatus(ViewingStatus.CANCELLED);
+      case RESCHEDULED -> booking.setStatus(ViewingStatus.PENDING);
       default -> throw new TanteException("Unsupported viewing outcome type.");
     }
 
-    viewingRequest.setOutcome(viewingOutcome);
-    viewingRequest = viewingRequestRepository.save(viewingRequest);
-    return toRequestDetails(viewingRequest);
+    booking.setOutcome(viewingOutcome);
+    booking = viewingBookingRepository.save(booking);
+    return toBookingDetails(booking);
   }
 
   private ViewingSlotDetailsDTO toSlotDetails(ViewingSlot viewingSlot) {
@@ -263,26 +268,26 @@ public class ViewingService {
     );
   }
 
-  private ViewingRequestDetailsDTO toRequestDetails(ViewingRequest request) {
+  private ViewingBookingDetailsDTO toBookingDetails(ViewingBooking booking) {
     ViewingOutcomeDetailsDTO outcome = null;
-    if (request.getOutcome() != null) {
+    if (booking.getOutcome() != null) {
       outcome = new ViewingOutcomeDetailsDTO(
-        request.getOutcome().getId(),
-        request.getId(),
-        request.getOutcome().getType(),
-        request.getOutcome().getNotes(),
-        request.getOutcome().getRecordedAt()
+        booking.getOutcome().getId(),
+        booking.getId(),
+        booking.getOutcome().getType(),
+        booking.getOutcome().getNotes(),
+        booking.getOutcome().getRecordedAt()
       );
     }
 
-    return new ViewingRequestDetailsDTO(
-      request.getId(),
-      request.getSlot() != null ? request.getSlot().getId() : null,
-      request.getRequesterUserId(),
-      request.getStatus(),
-      request.getServiceFee(),
-      request.isFeePaid(),
-      request.getNotes(),
+    return new ViewingBookingDetailsDTO(
+      booking.getId(),
+      booking.getSlot() != null ? booking.getSlot().getId() : null,
+      booking.getRequesterUserId(),
+      booking.getStatus(),
+      booking.getServiceFee(),
+      booking.isFeePaid(),
+      booking.getNotes(),
       outcome
     );
   }

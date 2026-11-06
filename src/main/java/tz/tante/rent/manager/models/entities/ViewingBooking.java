@@ -13,21 +13,21 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Entity
 @Table(
-  name = "viewing_requests",
+  name = "viewing_bookings",
   uniqueConstraints = {
-    @UniqueConstraint(name = "uk_viewing_request_slot_and_tenant", columnNames = {"slot_id", "tenant_user_id"})
+    @UniqueConstraint(name = "uk_viewing_booking_slot_and_requester", columnNames = {"slot_id", "requester_user_id"})
   },
   indexes = {
-    @Index(name = "idx_viewing_request_tenant", columnList = "tenant_user_id"),
-    @Index(name = "idx_viewing_request_status", columnList = "status")
+    @Index(name = "idx_viewing_booking_requester", columnList = "requester_user_id"),
+    @Index(name = "idx_viewing_booking_status", columnList = "status")
   }
 )
-public class ViewingRequest extends BaseEntity {
+public class ViewingBooking extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "slot_id", nullable = false)
   private ViewingSlot slot;
 
-  @Column(name = "tenant_user_id", nullable = false)
+  @Column(name = "requester_user_id", nullable = false)
   private Long requesterUserId;
 
   @Enumerated(EnumType.STRING)
@@ -43,13 +43,13 @@ public class ViewingRequest extends BaseEntity {
   @Column(length = 500)
   private String notes;
 
-  @OneToOne(mappedBy = "request", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
   private ViewingOutcome outcome;
 
   public void setOutcome(ViewingOutcome outcome) {
     this.outcome = outcome;
     if (outcome != null) {
-      outcome.setRequest(this);
+      outcome.setBooking(this);
     }
   }
 }

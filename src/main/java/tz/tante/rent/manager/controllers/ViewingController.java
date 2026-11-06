@@ -6,10 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
-import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingRequestDTO;
+import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingBookingDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingSlotDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.RecordViewingOutcomeDTO;
-import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingRequestDetailsDTO;
+import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingBookingDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingSlotDetailsDTO;
 import tz.tante.rent.manager.services.ViewingService;
 
@@ -52,68 +52,68 @@ public class ViewingController {
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @PostMapping("/requests")
-  public ResponseEntity<ApiResponse<ViewingRequestDetailsDTO>> createViewingRequest(@Valid @RequestBody CreateViewingRequestDTO request) {
-    ViewingRequestDetailsDTO response = viewingService.createViewingRequest(request);
+  @PostMapping("/bookings")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> createViewingBooking(@Valid @RequestBody CreateViewingBookingDTO request) {
+    ViewingBookingDetailsDTO response = viewingService.createViewingBooking(request);
     return ResponseEntity.status(HttpStatus.CREATED)
       .body(ApiResponse.success(response, HttpStatus.CREATED.value()));
   }
 
-  @GetMapping("/requests/{requestId}")
-  public ResponseEntity<ApiResponse<ViewingRequestDetailsDTO>> getViewingRequest(@PathVariable Long requestId) {
-    ViewingRequestDetailsDTO response = viewingService.getRequest(requestId);
+  @GetMapping("/bookings/{bookingId}")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> getViewingBooking(@PathVariable Long bookingId) {
+    ViewingBookingDetailsDTO response = viewingService.getBooking(bookingId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @GetMapping("/requests/by-tenant/{tenantUserId}")
-  public ResponseEntity<ApiResponse<List<ViewingRequestDetailsDTO>>> getViewingRequestsByTenant(@PathVariable Long tenantUserId) {
-    List<ViewingRequestDetailsDTO> response = viewingService.getRequestsByTenant(tenantUserId);
+  @GetMapping("/bookings/by-requester/{requesterUserId}")
+  public ResponseEntity<ApiResponse<List<ViewingBookingDetailsDTO>>> getViewingBookingsByTenant(@PathVariable Long requesterUserId) {
+    List<ViewingBookingDetailsDTO> response = viewingService.getBookingsByRequester(requesterUserId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @GetMapping("/requests/by-rental-profile/{rentalProfileId}")
-  public ResponseEntity<ApiResponse<List<ViewingRequestDetailsDTO>>> getViewingRequestsByRentalProfile(@PathVariable Long rentalProfileId) {
-    List<ViewingRequestDetailsDTO> response = viewingService.getRequestsByRentalProfile(rentalProfileId);
+  @GetMapping("/bookings/by-rental-profile/{rentalProfileId}")
+  public ResponseEntity<ApiResponse<List<ViewingBookingDetailsDTO>>> getViewingBookingsByRentalProfile(@PathVariable Long rentalProfileId) {
+    List<ViewingBookingDetailsDTO> response = viewingService.getBookingsByRentalProfile(rentalProfileId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @PatchMapping("/requests/{requestId}/approve")
-  public ResponseEntity<ApiResponse<ViewingRequestDetailsDTO>> approveViewingRequest(@PathVariable Long requestId) {
-    ViewingRequestDetailsDTO response = viewingService.approveRequest(requestId);
+  @PatchMapping("/bookings/{bookingId}/approve")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> approveViewingBooking(@PathVariable Long bookingId) {
+    ViewingBookingDetailsDTO response = viewingService.approveBooking(bookingId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @PatchMapping("/requests/{requestId}/reject")
-  public ResponseEntity<ApiResponse<ViewingRequestDetailsDTO>> rejectViewingRequest(@PathVariable Long requestId) {
-    ViewingRequestDetailsDTO response = viewingService.rejectRequest(requestId);
+  @PatchMapping("/bookings/{bookingId}/reject")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> rejectViewingBooking(@PathVariable Long bookingId) {
+    ViewingBookingDetailsDTO response = viewingService.rejectBooking(bookingId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @PatchMapping("/requests/{requestId}/pay")
-  public ResponseEntity<ApiResponse<ViewingRequestDetailsDTO>> markViewingFeePaid(@PathVariable Long requestId) {
-    ViewingRequestDetailsDTO response = viewingService.markFeePaid(requestId);
+  @PatchMapping("/bookings/{bookingId}/pay")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> markViewingFeePaid(@PathVariable Long bookingId) {
+    ViewingBookingDetailsDTO response = viewingService.markFeePaid(bookingId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @PatchMapping("/requests/{requestId}/confirm")
-  public ResponseEntity<ApiResponse<ViewingRequestDetailsDTO>> confirmViewingBooking(@PathVariable Long requestId) {
-    ViewingRequestDetailsDTO response = viewingService.confirmBooking(requestId);
+  @PatchMapping("/bookings/{bookingId}/confirm")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> confirmViewingBooking(@PathVariable Long bookingId) {
+    ViewingBookingDetailsDTO response = viewingService.confirmBooking(bookingId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @PatchMapping("/requests/{requestId}/outcome")
-  public ResponseEntity<ApiResponse<ViewingRequestDetailsDTO>> recordViewingOutcome(
-    @PathVariable Long requestId,
+  @PatchMapping("/bookings/{bookingId}/outcome")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> recordViewingOutcome(
+    @PathVariable Long bookingId,
     @Valid @RequestBody RecordViewingOutcomeDTO request
   ) {
-    ViewingRequestDetailsDTO response = viewingService.recordOutcome(requestId, request);
+    ViewingBookingDetailsDTO response = viewingService.recordOutcome(bookingId, request);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }

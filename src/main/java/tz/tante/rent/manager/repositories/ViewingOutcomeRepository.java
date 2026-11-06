@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ViewingOutcomeRepository extends JpaRepository<ViewingOutcome, Long> {
-  Optional<ViewingOutcome> findByRequestId(Long requestId);
+  Optional<ViewingOutcome> findByBookingId(Long bookingId);
 }

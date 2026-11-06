@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @Table(name = "viewing_outcomes")
 public class ViewingOutcome extends BaseEntity {
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "viewing_request_id", nullable = false, unique = true)
-  private ViewingRequest request;
+  @JoinColumn(name = "viewing_booking_id", nullable = false, unique = true)
+  private ViewingBooking booking;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 24)

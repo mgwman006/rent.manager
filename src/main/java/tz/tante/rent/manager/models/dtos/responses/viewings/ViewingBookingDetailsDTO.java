@@ -4,7 +4,7 @@ import tz.tante.rent.manager.enums.ViewingStatus;
 
 import java.math.BigDecimal;
 
-public record ViewingRequestDetailsDTO(
+public record ViewingBookingDetailsDTO(
   Long id,
   Long slotId,
   Long requesterUserId,

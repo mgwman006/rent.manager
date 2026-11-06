@@ -47,10 +47,10 @@ public class ViewingSlot extends BaseEntity {
   private String notes;
 
   @OneToMany(mappedBy = "slot", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ViewingRequest> requests = new ArrayList<>();
+  private List<ViewingBooking> bookings = new ArrayList<>();
 
-  public void addRequest(ViewingRequest request) {
-    requests.add(request);
-    request.setSlot(this);
+  public void addBooking(ViewingBooking booking) {
+    bookings.add(booking);
+    booking.setSlot(this);
   }
 }

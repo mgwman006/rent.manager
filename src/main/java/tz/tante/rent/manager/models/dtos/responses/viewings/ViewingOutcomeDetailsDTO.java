@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public record ViewingOutcomeDetailsDTO(
   Long id,
-  Long requestId,
+  Long bookingId,
   ViewingOutcomeType type,
   String notes,
   LocalDateTime recordedAt
