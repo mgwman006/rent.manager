@@ -4,9 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import tz.tante.rent.manager.enums.ViewingStatus;
+import tz.tante.rent.manager.enums.ViewingBookingStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -14,25 +15,33 @@ import java.math.BigDecimal;
 @Entity
 @Table(
   name = "viewing_bookings",
-  uniqueConstraints = {
-    @UniqueConstraint(name = "uk_viewing_booking_slot_and_requester", columnNames = {"slot_id", "requester_user_id"})
-  },
   indexes = {
+    @Index(name = "idx_viewing_booking_rental_profile", columnList = "rental_profile_id"),
+    @Index(name = "idx_viewing_booking_property", columnList = "property_id"),
     @Index(name = "idx_viewing_booking_requester", columnList = "requester_user_id"),
     @Index(name = "idx_viewing_booking_status", columnList = "status")
   }
 )
 public class ViewingBooking extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "slot_id", nullable = false)
-  private ViewingSlot slot;
+  @JoinColumn(name = "rental_profile_id", nullable = false)
+  private RentalProfile rentalProfile;
+
+  @Column(name = "property_id", nullable = false)
+  private Long propertyId;
+
+  @Column(name = "start_time", nullable = false)
+  private LocalDateTime startTime;
+
+  @Column(name = "end_time", nullable = false)
+  private LocalDateTime endTime;
 
   @Column(name = "requester_user_id", nullable = false)
   private Long requesterUserId;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 24)
-  private ViewingStatus status = ViewingStatus.PENDING;
+  private ViewingBookingStatus status = ViewingBookingStatus.PENDING;
 
   @Column(name = "service_fee", nullable = false)
   private BigDecimal serviceFee;

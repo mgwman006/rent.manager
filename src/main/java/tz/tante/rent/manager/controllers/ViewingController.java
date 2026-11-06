@@ -7,10 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingBookingDTO;
-import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingSlotDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.RecordViewingOutcomeDTO;
 import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingBookingDetailsDTO;
-import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingSlotDetailsDTO;
 import tz.tante.rent.manager.services.ViewingService;
 
 import java.util.List;
@@ -20,37 +18,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ViewingController {
   private final ViewingService viewingService;
-
-  @PostMapping("/slots/{rentalProfileId}")
-  public ResponseEntity<ApiResponse<ViewingSlotDetailsDTO>> createViewingSlot(
-    @PathVariable Long rentalProfileId,
-    @Valid @RequestBody CreateViewingSlotDTO request
-  ) {
-    ViewingSlotDetailsDTO response = viewingService.createViewingSlot(rentalProfileId, request);
-    return ResponseEntity.status(HttpStatus.CREATED)
-      .body(ApiResponse.success(response, HttpStatus.CREATED.value()));
-  }
-
-  @GetMapping("/slots/{rentalProfileId}")
-  public ResponseEntity<ApiResponse<List<ViewingSlotDetailsDTO>>> getViewingSlotsByRentalProfile(@PathVariable Long rentalProfileId) {
-    List<ViewingSlotDetailsDTO> response = viewingService.getSlotsByRentalProfile(rentalProfileId);
-    return ResponseEntity.status(HttpStatus.OK)
-      .body(ApiResponse.success(response, HttpStatus.OK.value()));
-  }
-
-  @GetMapping("/slots/{slotId}/details")
-  public ResponseEntity<ApiResponse<ViewingSlotDetailsDTO>> getViewingSlot(@PathVariable Long slotId) {
-    ViewingSlotDetailsDTO response = viewingService.getSlot(slotId);
-    return ResponseEntity.status(HttpStatus.OK)
-      .body(ApiResponse.success(response, HttpStatus.OK.value()));
-  }
-
-  @PatchMapping("/slots/{slotId}/cancel")
-  public ResponseEntity<ApiResponse<ViewingSlotDetailsDTO>> cancelViewingSlot(@PathVariable Long slotId) {
-    ViewingSlotDetailsDTO response = viewingService.cancelSlot(slotId);
-    return ResponseEntity.status(HttpStatus.OK)
-      .body(ApiResponse.success(response, HttpStatus.OK.value()));
-  }
 
   @PostMapping("/bookings")
   public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> createViewingBooking(@Valid @RequestBody CreateViewingBookingDTO request) {
@@ -67,7 +34,7 @@ public class ViewingController {
   }
 
   @GetMapping("/bookings/by-requester/{requesterUserId}")
-  public ResponseEntity<ApiResponse<List<ViewingBookingDetailsDTO>>> getViewingBookingsByTenant(@PathVariable Long requesterUserId) {
+  public ResponseEntity<ApiResponse<List<ViewingBookingDetailsDTO>>> getViewingBookingsByRequester(@PathVariable Long requesterUserId) {
     List<ViewingBookingDetailsDTO> response = viewingService.getBookingsByRequester(requesterUserId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));

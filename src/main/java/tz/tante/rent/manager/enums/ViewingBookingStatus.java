@@ -1,6 +1,6 @@
 package tz.tante.rent.manager.enums;
 
-public enum ViewingStatus {
+public enum ViewingBookingStatus {
   PENDING,
   APPROVED,
   REJECTED,
