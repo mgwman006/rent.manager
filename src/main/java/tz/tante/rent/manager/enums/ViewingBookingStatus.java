@@ -1,12 +1,12 @@
 package tz.tante.rent.manager.enums;
 
 public enum ViewingBookingStatus {
+  DRAFT,
   PENDING,
-  APPROVED,
-  REJECTED,
-  PAID,
   CONFIRMED,
-  COMPLETED,
+  REJECTED,
   CANCELLED,
-  NO_SHOW
+  CLOSED,
+  EXPIRED,
+  RESCHEDULED
 }

@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDateTime;
+
+
 import tz.tante.rent.manager.enums.ViewingOutcomeType;
 
-import java.time.LocalDateTime;
 
 @Getter
 @Setter

@@ -2,7 +2,8 @@ package tz.tante.rent.manager.enums;
 
 public enum ViewingOutcomeType {
   COMPLETED,
-  NO_SHOW,
-  CANCELLED,
+  AGENT_ABSENT,
+  TENANT_ABSENT,
+  UNIT_NOT_AVAILABLE,
   RESCHEDULED
 }

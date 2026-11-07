@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingBookingDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.RecordViewingOutcomeDTO;
+import tz.tante.rent.manager.models.dtos.requests.viewings.UpdateViewingPaymentStatusDTO;
 import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingBookingDetailsDTO;
 import tz.tante.rent.manager.services.ViewingService;
 
@@ -24,6 +25,23 @@ public class ViewingController {
     ViewingBookingDetailsDTO response = viewingService.createViewingBooking(request);
     return ResponseEntity.status(HttpStatus.CREATED)
       .body(ApiResponse.success(response, HttpStatus.CREATED.value()));
+  }
+
+  @GetMapping("/bookings/by-reference/{reference}")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> getViewingBookingByReference(@PathVariable String reference) {
+    ViewingBookingDetailsDTO response = viewingService.getBookingByReference(reference);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(response, HttpStatus.OK.value()));
+  }
+
+  @PatchMapping("/bookings/by-reference/{reference}/payment-status")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> updateViewingPaymentStatus(
+    @PathVariable String reference,
+    @Valid @RequestBody UpdateViewingPaymentStatusDTO request
+  ) {
+    ViewingBookingDetailsDTO response = viewingService.updatePaymentStatus(reference, request);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
   @GetMapping("/bookings/{bookingId}")
@@ -61,16 +79,9 @@ public class ViewingController {
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
 
-  @PatchMapping("/bookings/{bookingId}/pay")
-  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> markViewingFeePaid(@PathVariable Long bookingId) {
-    ViewingBookingDetailsDTO response = viewingService.markFeePaid(bookingId);
-    return ResponseEntity.status(HttpStatus.OK)
-      .body(ApiResponse.success(response, HttpStatus.OK.value()));
-  }
-
-  @PatchMapping("/bookings/{bookingId}/confirm")
-  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> confirmViewingBooking(@PathVariable Long bookingId) {
-    ViewingBookingDetailsDTO response = viewingService.confirmBooking(bookingId);
+  @PatchMapping("/bookings/{bookingId}/cancel")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> cancelViewingBooking(@PathVariable Long bookingId) {
+    ViewingBookingDetailsDTO response = viewingService.cancelBooking(bookingId);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }
