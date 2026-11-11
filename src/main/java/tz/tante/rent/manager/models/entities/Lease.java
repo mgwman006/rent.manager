@@ -32,6 +32,10 @@ public class Lease extends BaseEntity
   @Column(nullable = false)
   private boolean fullLeasePaymentRequired;
 
+  @Lob
+  @Column(columnDefinition = "TEXT")
+  private String leaseTerms;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private LeaseStatus status;

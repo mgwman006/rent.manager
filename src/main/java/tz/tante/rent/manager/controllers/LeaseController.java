@@ -11,6 +11,8 @@ import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseTermsUpdateDTO;
+import tz.tante.rent.manager.models.dtos.requests.leases.UpdateLeaseDatesDTO;
+import tz.tante.rent.manager.models.dtos.requests.leases.UpdateRentDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.services.LeaseService;
 
@@ -48,6 +50,22 @@ public class LeaseController
   public ResponseEntity<ApiResponse<LeaseDetailsDTO>> updateLeaseTerms(@PathVariable Long leaseId, @Valid @RequestBody LeaseTermsUpdateDTO leaseTermsUpdateDTO)
   {
     LeaseDetailsDTO leaseDetails = leaseService.updateLeaseTerms(leaseId, leaseTermsUpdateDTO);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
+  }
+
+  @PatchMapping("/{leaseId}/dates")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> updateLeaseDates(@PathVariable Long leaseId, @Valid @RequestBody UpdateLeaseDatesDTO updateLeaseDatesDTO)
+  {
+    LeaseDetailsDTO leaseDetails = leaseService.updateLeaseDates(leaseId, updateLeaseDatesDTO);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
+  }
+
+  @PatchMapping("/{leaseId}/rent")
+  public ResponseEntity<ApiResponse<LeaseDetailsDTO>> updateLeaseRent(@PathVariable Long leaseId, @Valid @RequestBody UpdateRentDTO updateRentDTO)
+  {
+    LeaseDetailsDTO leaseDetails = leaseService.updateLeaseRent(leaseId, updateRentDTO);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(leaseDetails, HttpStatus.OK.value()));
   }

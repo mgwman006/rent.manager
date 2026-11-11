@@ -13,6 +13,7 @@ public record LeaseDetailsDTO(
   String endDate,
   RentDTO rent,
   boolean fullLeasePaymentRequired,
+  String leaseTerms,
   String status,
   TenantDetailsDTO tenant,
   List<LeaseInvitationDetailsDTO> invitations)
