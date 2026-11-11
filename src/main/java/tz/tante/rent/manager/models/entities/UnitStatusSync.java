@@ -34,5 +34,4 @@ public class UnitStatusSync extends BaseEntity
   @Column(columnDefinition = "TEXT")
   private String lastError;
 
-  // Generate getters and setters using your IDE.
 }

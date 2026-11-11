@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.rentalprofiles.CreateRentalProfileDTO;
+import tz.tante.rent.manager.models.dtos.requests.rentalprofiles.UpgradeRentalProfileDTO;
 import tz.tante.rent.manager.models.dtos.responses.rentalprofiles.RentalProfileDetailsDTO;
 import tz.tante.rent.manager.services.RentalProfileService;
 
@@ -32,10 +33,11 @@ public class RentalProfileController
       .body(ApiResponse.success(rentalProfileDetailsDTO, HttpStatus.CREATED.value()));
   }
 
-  @PatchMapping("/{rentalProfileId}/upgrade/{organizationId}")
-  public ResponseEntity<ApiResponse<RentalProfileDetailsDTO>> upgradeToOrganizationRentalProfile(@PathVariable Long rentalProfileId, @PathVariable Long organizationId)
+  @PatchMapping("/{rentalProfileId}/upgrade")
+  public ResponseEntity<ApiResponse<RentalProfileDetailsDTO>> upgradeToOrganizationRentalProfile(@PathVariable Long rentalProfileId,
+                                                                                                 @Valid @RequestBody UpgradeRentalProfileDTO request)
   {
-    RentalProfileDetailsDTO rentalProfileDetailsDTO = rentalProfileService.upgradeToOrganizationRentalProfile(rentalProfileId, organizationId);
+    RentalProfileDetailsDTO rentalProfileDetailsDTO = rentalProfileService.upgradeToOrganizationRentalProfile(rentalProfileId, request);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(rentalProfileDetailsDTO, HttpStatus.OK.value()));
   }

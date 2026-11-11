@@ -15,6 +15,8 @@ import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.models.dtos.requests.RentCreateDTO;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseTermsUpdateDTO;
+import tz.tante.rent.manager.models.dtos.requests.leases.UpdateLeaseDatesDTO;
+import tz.tante.rent.manager.models.dtos.requests.leases.UpdateRentDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.RentDTO;
 import tz.tante.rent.manager.models.dtos.responses.TenantDetailsDTO;
@@ -218,13 +220,47 @@ public class LeaseService
       throw new TanteException("Cannot update terms of an active lease or a lease that has ended.");
     }
 
-    lease.setStartDate(leaseTermsUpdateDTO.startDate());
-    lease.setEndDate(leaseTermsUpdateDTO.endDate());
-    lease.setFullLeasePaymentRequired(leaseTermsUpdateDTO.fullLeasePaymentRequired());
+    lease.setLeaseTerms(leaseTermsUpdateDTO.leaseTerms());
 
-    Rent rent = getRent(leaseTermsUpdateDTO.rent());
+    Lease updatedLease = leaseRepository.save(lease);
+    return getLeaseDetailsDTO(updatedLease);
+  }
+
+  @Transactional
+  public LeaseDetailsDTO updateLeaseDates(Long leaseId, UpdateLeaseDatesDTO updateLeaseDatesDTO)
+  {
+    Lease lease = leaseRepository.findById(leaseId)
+      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + NOT_FOUND));
+
+    if (!isValidateLeaseDates(updateLeaseDatesDTO.startDate(), updateLeaseDatesDTO.endDate()))
+    {
+      throw new TanteException("Invalid lease dates: start date must be before end date.");
+    }
+
+    lease.setStartDate(updateLeaseDatesDTO.startDate());
+    lease.setEndDate(updateLeaseDatesDTO.endDate());
+
+    lease.replacePaymentBlocks(RentCalculator.generatePaymentBlocksForLease(lease));
+
+    Lease updatedLease = leaseRepository.save(lease);
+    return getLeaseDetailsDTO(updatedLease);
+  }
+
+  @Transactional
+  public LeaseDetailsDTO updateLeaseRent(Long leaseId, UpdateRentDTO updateRentDTO)
+  {
+    Lease lease = leaseRepository.findById(leaseId)
+      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + NOT_FOUND));
+
+    if (updateRentDTO.rent() == null)
+    {
+      throw new TanteException("Rent details are required to update the lease rent.");
+    }
+
+    Rent rent = getRent(updateRentDTO.rent());
     rent.addLease(lease);
-
+    lease.setRent(rent);
+    lease.setFullLeasePaymentRequired(updateRentDTO.fullLeasePaymentRequired());
     lease.replacePaymentBlocks(RentCalculator.generatePaymentBlocksForLease(lease));
 
     Lease updatedLease = leaseRepository.save(lease);
@@ -281,6 +317,7 @@ public class LeaseService
         lease.getRent().getFrequency().name()
       ) : null,
       lease.isFullLeasePaymentRequired(),
+      lease.getLeaseTerms(),
       lease.getStatus().name(),
       lease.getTenant() != null ? new TenantDetailsDTO(
         lease.getTenant().getId(),
@@ -326,6 +363,7 @@ public class LeaseService
     lease.setInitiatedBy(initiator);
     lease.setStartDate(leaseCreateDTO.startDate());
     lease.setEndDate(leaseCreateDTO.endDate());
+    lease.setLeaseTerms(leaseCreateDTO.leaseTerms());
     lease.setFullLeasePaymentRequired(leaseCreateDTO.fullLeasePaymentRequired());
     lease.setStatus(initiator == LeaseInitiator.LANDLORD ? LeaseStatus.PENDING_TENANT_APPROVAL : LeaseStatus.PENDING_LANDLORD_APPROVAL);
     lease.setUnitId(leaseCreateDTO.unitId());
