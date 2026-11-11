@@ -44,3 +44,5 @@ CREATE TABLE IF NOT EXISTS viewing_outcomes
   CONSTRAINT fk_viewing_outcomes_booking
     FOREIGN KEY (viewing_booking_id) REFERENCES viewing_bookings (id)
 ) ENGINE = InnoDB;
+
+ALTER TABLE leases ADD COLUMN lease_terms TEXT;
