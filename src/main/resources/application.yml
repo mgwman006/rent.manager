@@ -7,10 +7,10 @@ spring:
     password: ${DB_PASSWORD}
   sql:
     init:
-      mode: always
+      mode: never
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -90,6 +90,16 @@ property:
     manager:
       base:
         url: ${PROPERTY_MANAGER_BASE_URL}
+
+tante:
+  pay:
+    base:
+      url: ${TANTE_PAY_BASE_URL:http://localhost:8085}
+
+viewing:
+  booking:
+    hold-minutes: ${VIEWING_BOOKING_HOLD_MINUTES:15}
+    hold-scan-ms: ${VIEWING_BOOKING_HOLD_SCAN_MS:60000}
 
 notification:
   sms:

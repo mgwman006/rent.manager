@@ -35,6 +35,8 @@ public record LeaseCreateDTO(
 
   RentCreateDTO rent,
 
+  String leaseTerms,
+
   @NotNull(message = "Full lease payment requirement cannot be null")
   boolean fullLeasePaymentRequired
 )
