@@ -27,7 +27,7 @@ public class ViewingBooking extends BaseEntity {
   private RentalProfile rentalProfile;
 
   @Column(nullable = false)
-  private Long propertyId;
+  private Long unitId;
 
   @Column(nullable = false)
   private LocalDateTime startTime;

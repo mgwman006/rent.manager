@@ -10,7 +10,7 @@ public record ViewingBookingDetailsDTO(
   Long id,
   String reference,
   Long rentalProfileId,
-  Long propertyId,
+  Long unitId,
   LocalDateTime startTime,
   LocalDateTime endTime,
   Long requesterUserId,

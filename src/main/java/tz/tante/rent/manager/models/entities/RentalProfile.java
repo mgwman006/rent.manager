@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import tz.tante.rent.manager.enums.RentalProfileType;
+
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,6 +34,9 @@ public class RentalProfile extends BaseEntity
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 50)
   private RentalProfileType type;
+
+  @Column(nullable = false, precision = 12, scale = 2)
+  private BigDecimal viewingServiceFee;
 
   @OneToMany(mappedBy = "rentalProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   private Set<RentReceivingAccount> rentReceivingAccounts = new HashSet<>();

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import tz.tante.rent.manager.enums.RentalProfileType;
 
+import java.math.BigDecimal;
+
 @Schema(description = "Data Transfer Object for creating a new rental profile.")
 public record CreateRentalProfileDTO(
 
@@ -16,6 +18,8 @@ public record CreateRentalProfileDTO(
   Long userId,
 
   Long organizationId,
+
+  BigDecimal viewingServiceFee,
 
   @NotBlank(message = "Rental profile name is required")
   String name,
