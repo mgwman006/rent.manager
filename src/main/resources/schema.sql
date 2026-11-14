@@ -46,3 +46,5 @@ CREATE TABLE IF NOT EXISTS viewing_outcomes
 ) ENGINE = InnoDB;
 
 ALTER TABLE leases ADD COLUMN lease_terms TEXT;
+
+ALTER TABLE rent_manager.rental_profiles ADD COLUMN viewing_service_fee DECIMAL(38, 2) NOT NULL DEFAULT 0.00;
