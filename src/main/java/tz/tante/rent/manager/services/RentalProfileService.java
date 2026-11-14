@@ -109,6 +109,7 @@ public class RentalProfileService
       rentalProfile.getEmail(),
       rentalProfile.getUserId(),
       rentalProfile.getOrganizationId(),
+      rentalProfile.getViewingServiceFee(),
       rentalProfile.getType(),
       rentReceivingAccount == null ? null : new RentReceivingAccountDetailsDTO(
         rentReceivingAccount.getId(),

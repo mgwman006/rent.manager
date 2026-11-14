@@ -83,7 +83,7 @@ public class ViewingService
     ViewingBooking booking = new ViewingBooking();
     booking.setReference("VB-" + UUID.randomUUID());
     booking.setRentalProfile(rentalProfile);
-    booking.setPropertyId(request.propertyId());
+    booking.setUnitId(request.unitId());
     booking.setStartTime(request.startTime());
     booking.setEndTime(request.endTime());
     booking.setRequesterUserAccountId(request.requesterUserAccountId());
@@ -327,7 +327,7 @@ public class ViewingService
       booking.getId(),
       booking.getReference(),
       booking.getRentalProfile() != null ? booking.getRentalProfile().getId() : null,
-      booking.getPropertyId(),
+      booking.getUnitId(),
       booking.getStartTime(),
       booking.getEndTime(),
       booking.getRequesterUserAccountId(),
