@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tz.tante.rent.manager.clients.PropertyManagerClient;
 import tz.tante.rent.manager.engines.rent.RentCalculator;
 import tz.tante.rent.manager.engines.rent.dtos.MonthlyCollectionSummary;
 import tz.tante.rent.manager.engines.rent.dtos.PaymentBlockSummary;
@@ -32,6 +33,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import org.springframework.cache.annotation.Cacheable;
 
 
@@ -47,6 +49,7 @@ public class LeaseService
   private final RentRepository rentRepository;
   private final RentCalculator rentCalculator;
   private final UnitStatusSyncRepository unitStatusSyncRepository;
+  private final PropertyManagerClient propertyManagerClient;
 
   @Scheduled( cron = "0 0 0 * * *", zone = "Africa/Dar_es_Salaam" )
   @Transactional
@@ -354,6 +357,43 @@ public class LeaseService
     Lease lease = leaseRepository.findById(leaseId)
       .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + " not found"));
     return getLeaseDetailsDTO(lease);
+  }
+
+  @Transactional
+  public LeaseDetailsDTO assignUnit(Long leaseId, Long unitId)
+  {
+    Lease lease = leaseRepository.findById(leaseId)
+      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + " not found"));
+    if (lease.getUnitId() != null)
+    {
+      throw new TanteException("A unit is already assigned to this lease.");
+    }
+    if (lease.getStatus() == LeaseStatus.ENDED || lease.getStatus() == LeaseStatus.TERMINATED)
+    {
+      throw new TanteException("A unit cannot be assigned to an ended or terminated lease.");
+    }
+
+    Map<String, Object> unitResponse = propertyManagerClient.getUnitDetails(unitId);
+    if (!Boolean.TRUE.equals(unitResponse.get("success")) || !(unitResponse.get("data") instanceof Map<?, ?> unit))
+    {
+      throw new TanteException("The property service returned invalid unit details.");
+    }
+
+    Object rentalProfileId = unit.get("rentalProfileId");
+    Object unitStatus = unit.get("status");
+    if (!(rentalProfileId instanceof Number profileId)
+      || lease.getRentalProfile() == null
+      || profileId.longValue() != lease.getRentalProfile().getId())
+    {
+      throw new TanteException("The selected unit does not belong to this lease's rental profile.");
+    }
+    if (!UnitStatus.AVAILABLE.name().equals(unitStatus))
+    {
+      throw new TanteException("Only available units can be assigned to a lease.");
+    }
+
+    lease.setUnitId(unitId);
+    return getLeaseDetailsDTO(leaseRepository.save(lease));
   }
 
   private Lease createLeaseFromDTO(LeaseCreateDTO leaseCreateDTO, LeaseInitiator initiator)
