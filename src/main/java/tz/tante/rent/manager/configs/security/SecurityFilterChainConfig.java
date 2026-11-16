@@ -37,6 +37,7 @@ public class SecurityFilterChainConfig
         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
         .requestMatchers(
           "/v1/auth/**",
+          "/v1/sms/**",
           "/swagger-ui/**",
           "/swagger-ui.html",
           "/v3/api-docs/**"
