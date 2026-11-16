@@ -27,4 +27,8 @@ public record CreateRentalProfileDTO(
   @NotNull(message = "Rental profile type is required")
   RentalProfileType type)
 {
+  public CreateRentalProfileDTO
+  {
+    viewingServiceFee = viewingServiceFee == null ? BigDecimal.ZERO : viewingServiceFee;
+  }
 }

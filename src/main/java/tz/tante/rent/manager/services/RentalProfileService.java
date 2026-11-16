@@ -48,6 +48,7 @@ public class RentalProfileService
       rentalProfile.setEmail(createRentalProfileDTO.email());
       rentalProfile.setName(createRentalProfileDTO.name());
       rentalProfile.setType(createRentalProfileDTO.type());
+      rentalProfile.setViewingServiceFee(createRentalProfileDTO.viewingServiceFee());
       rentalProfile  = rentalProfileRepository.save(rentalProfile);
 
       return getRentalProfileDetailsDTO(rentalProfile);
