@@ -13,6 +13,8 @@ import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
 import tz.tante.rent.manager.enums.*;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
+import tz.tante.rent.manager.messaging.notification.NotificationService;
+import tz.tante.rent.manager.messaging.notification.enums.NotificationType;
 import tz.tante.rent.manager.models.dtos.requests.RentCreateDTO;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseCreateDTO;
 import tz.tante.rent.manager.models.dtos.requests.leases.LeaseTermsUpdateDTO;
@@ -41,7 +43,12 @@ import org.springframework.cache.annotation.Cacheable;
 @AllArgsConstructor
 public class LeaseService
 {
-  private static final Long MAX_LONG_VALUE = 9223372036854775807L;
+  /**
+   * CONSTANTS
+   * ---------
+   */
+  private static final String LEASE_WITH_ID = "Lease with id ";
+
   private final LeaseRepository leaseRepository;
   private final RentalProfileRepository rentalProfileRepository;
   private final TenantRepository tenantRepository;
@@ -50,6 +57,7 @@ public class LeaseService
   private final RentCalculator rentCalculator;
   private final UnitStatusSyncRepository unitStatusSyncRepository;
   private final PropertyManagerClient propertyManagerClient;
+  private final NotificationService notificationService;
 
   @Scheduled( cron = "0 0 0 * * *", zone = "Africa/Dar_es_Salaam" )
   @Transactional
@@ -67,7 +75,7 @@ public class LeaseService
       sync.setTargetStatus(UnitStatus.AVAILABLE);
       sync.setStatus(SyncStatus.PENDING);
       sync.setAttempts(0);
-      sync.setNextRetryAt(LocalDateTime.now());
+      sync.setNextRetryAt(LocalDateTime.now(ZoneId.of("UTC")));
       unitStatusSyncRepository.save(sync);
     }
   }
@@ -144,7 +152,7 @@ public class LeaseService
   @Transactional
   public LeaseDetailsDTO createLeaseInitiatedByLandlord(LeaseCreateDTO leaseCreateDTO)
   {
-    if (!isValidateLeaseDates(leaseCreateDTO.startDate(), leaseCreateDTO.endDate()))
+    if (isNotValidateLeaseDates(leaseCreateDTO.startDate(), leaseCreateDTO.endDate()))
     {
       throw new TanteException("Invalid lease dates: start date must be before end date.");
     }
@@ -174,6 +182,7 @@ public class LeaseService
     lease.addInvitation(leaseInvitation);
 
     Lease savedLease = leaseRepository.save(lease);
+    enqueueLeaseInvitationNotification(leaseInvitation);
     return getLeaseDetailsDTO(savedLease);
   }
 
@@ -209,6 +218,7 @@ public class LeaseService
 
 
     Lease savedLease = leaseRepository.save(lease);
+    enqueueLeaseInvitationNotification(leaseInvitation);
     return getLeaseDetailsDTO(savedLease);
   }
 
@@ -216,7 +226,7 @@ public class LeaseService
   public LeaseDetailsDTO updateLeaseTerms(Long leaseId, LeaseTermsUpdateDTO leaseTermsUpdateDTO)
   {
     Lease lease = leaseRepository.findById(leaseId)
-      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + NOT_FOUND));
+      .orElseThrow(() -> new ResourceNotFoundException(LEASE_WITH_ID + leaseId + NOT_FOUND));
 
     if (lease.getStatus()== LeaseStatus.ACTIVE || lease.getStatus() == LeaseStatus.ENDED)
     {
@@ -233,9 +243,9 @@ public class LeaseService
   public LeaseDetailsDTO updateLeaseDates(Long leaseId, UpdateLeaseDatesDTO updateLeaseDatesDTO)
   {
     Lease lease = leaseRepository.findById(leaseId)
-      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + NOT_FOUND));
+      .orElseThrow(() -> new ResourceNotFoundException(LEASE_WITH_ID + leaseId + NOT_FOUND));
 
-    if (!isValidateLeaseDates(updateLeaseDatesDTO.startDate(), updateLeaseDatesDTO.endDate()))
+    if (isNotValidateLeaseDates(updateLeaseDatesDTO.startDate(), updateLeaseDatesDTO.endDate()))
     {
       throw new TanteException("Invalid lease dates: start date must be before end date.");
     }
@@ -253,7 +263,7 @@ public class LeaseService
   public LeaseDetailsDTO updateLeaseRent(Long leaseId, UpdateRentDTO updateRentDTO)
   {
     Lease lease = leaseRepository.findById(leaseId)
-      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + NOT_FOUND));
+      .orElseThrow(() -> new ResourceNotFoundException(LEASE_WITH_ID + leaseId + NOT_FOUND));
 
     if (updateRentDTO.rent() == null)
     {
@@ -355,7 +365,7 @@ public class LeaseService
   public LeaseDetailsDTO getLeaseById(Long leaseId)
   {
     Lease lease = leaseRepository.findById(leaseId)
-      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + " not found"));
+      .orElseThrow(() -> new ResourceNotFoundException(LEASE_WITH_ID + leaseId + NOT_FOUND));
     return getLeaseDetailsDTO(lease);
   }
 
@@ -363,7 +373,7 @@ public class LeaseService
   public LeaseDetailsDTO assignUnit(Long leaseId, Long unitId)
   {
     Lease lease = leaseRepository.findById(leaseId)
-      .orElseThrow(() -> new ResourceNotFoundException("Lease with id " + leaseId + " not found"));
+      .orElseThrow(() -> new ResourceNotFoundException(LEASE_WITH_ID + leaseId + NOT_FOUND));
     if (lease.getUnitId() != null)
     {
       throw new TanteException("A unit is already assigned to this lease.");
@@ -430,12 +440,31 @@ public class LeaseService
     leaseInvitation.setMessage("You have a lease invitation. Please review and accept it.");
     leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
     leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
-    leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+    leaseInvitation.setSentAt(LocalDateTime.now(ZoneId.of("UTC")));
+    leaseInvitation.setStatus(LeaseInvitationStatus.SENT);
     return leaseInvitation;
   }
 
-  private boolean isValidateLeaseDates(LocalDate startDate, LocalDate endDate)
+  private void enqueueLeaseInvitationNotification(LeaseInvitation leaseInvitation)
   {
-    return startDate.isBefore(endDate);
+    if (notificationService == null)
+    {
+      return;
+    }
+
+    notificationService.createPendingNotification(
+      "Lease invitation",
+      leaseInvitation.getMessage(),
+      NotificationType.SMS,
+      leaseInvitation.getPhoneNumber(),
+      leaseInvitation.getEmail(),
+      "LEASE_INVITATION",
+      String.valueOf(leaseInvitation.getId())
+    );
+  }
+
+  private boolean isNotValidateLeaseDates(LocalDate startDate, LocalDate endDate)
+  {
+    return startDate.isAfter(endDate) || startDate.isEqual(endDate);
   }
 }

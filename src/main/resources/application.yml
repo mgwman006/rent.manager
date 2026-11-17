@@ -110,4 +110,11 @@ notification:
             bulk: https://api.africastalking.com/version1/messaging/bulk
           key: atsk_c09fe4415d92f0dfce03c9805ec5c49e49beed9c357d71334caebeb418d25c0638733520
           username: notificationmanager
+      beem:
+        api:
+          url: ${BEEM_SMS_API_URL:https://apisms.beem.africa/v1/send}
+          username: ${BEEM_SMS_API_KEY:}
+          password: ${BEEM_SMS_API_SECRET_KEY:}
+          sender:
+            id: ${BEEM_SMS_API_SENDER_ID:}
 

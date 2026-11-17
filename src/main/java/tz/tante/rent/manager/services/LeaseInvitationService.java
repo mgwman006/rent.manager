@@ -9,6 +9,8 @@ import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.LeaseInvitationStatus;
 import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
+import tz.tante.rent.manager.messaging.notification.NotificationService;
+import tz.tante.rent.manager.messaging.notification.enums.NotificationType;
 import tz.tante.rent.manager.models.dtos.requests.leaseinvitation.LeaseInvitationCreateDTO;
 import tz.tante.rent.manager.models.dtos.responses.LeaseInvitationDetailsDTO;
 import tz.tante.rent.manager.models.entities.Lease;
@@ -40,6 +42,7 @@ public class LeaseInvitationService
   private final TenantRepository tenantRepository;
   private final RentalProfileRepository rentalProfileRepository;
   private final LeaseInvitationStatusUpdateService leaseInvitationStatusUpdateService;
+  private final NotificationService notificationService;
 
   public LeaseInvitationDetailsDTO createInvitation(LeaseInvitationCreateDTO request)
   {
@@ -58,10 +61,19 @@ public class LeaseInvitationService
     leaseInvitation.setMessage("You have a lease invitation. Please review and accept it.");
     leaseInvitation.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
     leaseInvitation.setExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(7)); // Set expiration date for the invitation
-    leaseInvitation.setStatus(LeaseInvitationStatus.PENDING);
+    leaseInvitation.setStatus(LeaseInvitationStatus.SENT);
     lease.addInvitation(leaseInvitation);
 
     leaseInvitation = leaseInvitationRepository.save(leaseInvitation);
+    notificationService.createPendingNotification(
+      "Lease invitation",
+      leaseInvitation.getMessage(),
+      NotificationType.SMS,
+      leaseInvitation.getPhoneNumber(),
+      leaseInvitation.getEmail(),
+      "LEASE_INVITATION",
+      String.valueOf(leaseInvitation.getId())
+    );
 
     return mapInvitationToDTO(lease.getId(), leaseInvitation);
   }
@@ -72,7 +84,7 @@ public class LeaseInvitationService
     LeaseInvitation invitation = leaseInvitationRepository.findByToken(invitationToken)
       .orElseThrow(() -> new ResourceNotFoundException(TENANT_NOT_FOUND_BY_TOKEN_MESSAGE + invitationToken));
 
-    if (invitation.getStatus() != LeaseInvitationStatus.PENDING)
+    if (invitation.getStatus() != LeaseInvitationStatus.SENT && invitation.getStatus() != LeaseInvitationStatus.PENDING)
     {
       throw new ResourceExistException("Lease invitation has already been processed.");
     }
@@ -114,7 +126,7 @@ public class LeaseInvitationService
     LeaseInvitation invitation = leaseInvitationRepository.findByToken(invitationToken)
       .orElseThrow(() -> new ResourceNotFoundException(TENANT_NOT_FOUND_BY_TOKEN_MESSAGE + invitationToken));
 
-    if (invitation.getStatus() != LeaseInvitationStatus.PENDING)
+    if (invitation.getStatus() != LeaseInvitationStatus.SENT && invitation.getStatus() != LeaseInvitationStatus.PENDING)
     {
       throw new ResourceExistException("Lease invitation has already been processed.");
     }
@@ -160,7 +172,7 @@ public class LeaseInvitationService
 
   public List<LeaseInvitationDetailsDTO> getPendingInvitationsByPhoneNumber(String phoneNumber)
   {
-    List<LeaseInvitation> invitations = leaseInvitationRepository.findByPhoneNumberAndStatus(Utils.normalizePhone(phoneNumber), LeaseInvitationStatus.PENDING);
+    List<LeaseInvitation> invitations = leaseInvitationRepository.findByPhoneNumberAndStatus(Utils.normalizePhone(phoneNumber), LeaseInvitationStatus.SENT);
     return invitations.stream()
       .map(invitation -> mapInvitationToDTO(invitation.getLease().getId(), invitation))
       .toList();
