@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tz.tante.rent.manager.enums.LeaseInitiator;
 import tz.tante.rent.manager.enums.LeaseInvitationStatus;
+import tz.tante.rent.manager.messaging.notification.SmsProvider;
 import tz.tante.rent.manager.messaging.notification.SmsResponse;
-import tz.tante.rent.manager.messaging.notification.provider.afrikatalking.AfrikaTalkingSmsProvider;
 import tz.tante.rent.manager.models.entities.LeaseInvitation;
 import tz.tante.rent.manager.repositories.LeaseInvitationRepository;
 
@@ -24,7 +24,7 @@ import java.util.List;
 public class LeaseInvitationSyncService
 {
   private final LeaseInvitationRepository leaseInvitationRepository;
-  private final AfrikaTalkingSmsProvider smsProvider;
+  private final SmsProvider smsProvider;
 
   @Value("${app.tenant.base-url}")
   private String tenantAppBaseUrl;
@@ -38,33 +38,11 @@ public class LeaseInvitationSyncService
   @Value("${app.landlord.invitation-path:/rental-profile/invitations}")
   private String landlordInvitationPath;
 
-  @Scheduled(fixedDelay = 300000)
+  @Deprecated
   @Transactional
   public void processPendingInvitations()
   {
-    List<LeaseInvitation> invitations = leaseInvitationRepository
-      .findDueInvitations(LeaseInvitationStatus.PENDING, LocalDateTime.now(ZoneId.of("UTC")));
-
-    for (LeaseInvitation leaseInvitation : invitations)
-    {
-      try
-      {
-        String message = buildInvitationMessage(leaseInvitation);
-        leaseInvitation.setMessage(message);
-        SmsResponse smsResponse = smsProvider.sendSms(leaseInvitation.getPhoneNumber(), message);
-        leaseInvitation.setProviderReference(smsResponse.messageId());
-        leaseInvitation.setStatus(LeaseInvitationStatus.SENT);
-        leaseInvitation.setSentAt(LocalDateTime.now(ZoneId.of("UTC")));
-        leaseInvitation.setAttempts(0);
-        leaseInvitation.setLastError(null);
-        leaseInvitation.setNextRetryAt(null);
-        leaseInvitationRepository.save(leaseInvitation);
-      }
-      catch (Exception exception)
-      {
-        handleFailure(leaseInvitation, exception.getMessage(), exception);
-      }
-    }
+    // Notification dispatch is handled asynchronously by NotificationDispatchService.
   }
 
   private String buildInvitationMessage(LeaseInvitation invitation)

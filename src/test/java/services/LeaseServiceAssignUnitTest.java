@@ -19,6 +19,7 @@ import tz.tante.rent.manager.repositories.UnitStatusSyncRepository;
 import tz.tante.rent.manager.engines.rent.RentCalculator;
 import tz.tante.rent.manager.services.LeaseService;
 import tz.tante.rent.manager.exceptions.TanteException;
+import tz.tante.rent.manager.messaging.notification.NotificationService;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -39,6 +40,7 @@ class LeaseServiceAssignUnitTest
   @Mock private RentCalculator rentCalculator;
   @Mock private UnitStatusSyncRepository unitStatusSyncRepository;
   @Mock private PropertyManagerClient propertyManagerClient;
+  @Mock private NotificationService notificationService;
 
   private LeaseService leaseService;
 
@@ -53,7 +55,8 @@ class LeaseServiceAssignUnitTest
       rentRepository,
       rentCalculator,
       unitStatusSyncRepository,
-      propertyManagerClient
+      propertyManagerClient,
+      notificationService
     );
   }
 

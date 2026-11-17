@@ -2,7 +2,6 @@ package tz.tante.rent.manager.messaging.notification.provider.afrikatalking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import tz.tante.rent.manager.clients.AfrikaTalkingSmsClient;
 import tz.tante.rent.manager.exceptions.TanteException;
@@ -12,7 +11,6 @@ import tz.tante.rent.manager.messaging.notification.SmsResponse;
 import java.util.List;
 
 @Component
-@Primary
 @RequiredArgsConstructor
 public class AfrikaTalkingSmsProvider implements SmsProvider
 {

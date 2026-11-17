@@ -7,6 +7,8 @@ import tz.tante.rent.manager.enums.ViewingBookingStatus;
 import tz.tante.rent.manager.enums.ViewingPaymentStatus;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
+import tz.tante.rent.manager.messaging.notification.NotificationService;
+import tz.tante.rent.manager.messaging.notification.enums.NotificationType;
 import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingBookingDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.RecordViewingOutcomeDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.UpdateViewingPaymentStatusDTO;
@@ -42,6 +44,7 @@ public class ViewingService
   private final ViewingBookingRepository viewingBookingRepository;
   private final ViewingOutcomeRepository viewingOutcomeRepository;
   private final RentalProfileRepository rentalProfileRepository;
+  private final NotificationService notificationService;
   private final ViewingRefundNotifier viewingRefundNotifier;
   private final int holdMinutes;
 
@@ -49,12 +52,14 @@ public class ViewingService
     ViewingBookingRepository viewingBookingRepository,
     ViewingOutcomeRepository viewingOutcomeRepository,
     RentalProfileRepository rentalProfileRepository,
+    NotificationService notificationService,
     ViewingRefundNotifier viewingRefundNotifier,
     @Value("${viewing.booking.hold-minutes:15}") int holdMinutes
   ) {
     this.viewingBookingRepository = viewingBookingRepository;
     this.viewingOutcomeRepository = viewingOutcomeRepository;
     this.rentalProfileRepository = rentalProfileRepository;
+    this.notificationService = notificationService;
     this.viewingRefundNotifier = viewingRefundNotifier;
     this.holdMinutes = holdMinutes;
   }
@@ -102,7 +107,17 @@ public class ViewingService
       booking.setHoldExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusMinutes(holdMinutes));
     }
 
-    return toBookingDetails(viewingBookingRepository.save(booking));
+    ViewingBooking savedBooking = viewingBookingRepository.save(booking);
+    notificationService.createPendingNotification(
+      "Viewing booking created",
+      "Your viewing booking reference is " + savedBooking.getReference() + ".",
+      NotificationType.SMS,
+      rentalProfile.getPhoneNumber(),
+      rentalProfile.getEmail(),
+      "VIEWING_BOOKING",
+      String.valueOf(savedBooking.getId())
+    );
+    return toBookingDetails(savedBooking);
   }
 
   @Transactional
