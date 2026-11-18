@@ -7,6 +7,7 @@ import tz.tante.rent.manager.enums.ViewingBookingStatus;
 import tz.tante.rent.manager.enums.ViewingPaymentStatus;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
+import tz.tante.rent.manager.messaging.models.NotificationDTO;
 import tz.tante.rent.manager.messaging.notification.NotificationService;
 import tz.tante.rent.manager.messaging.notification.enums.NotificationType;
 import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingBookingDTO;
@@ -93,30 +94,51 @@ public class ViewingService
     booking.setEndTime(request.endTime());
     booking.setRequesterUserAccountId(request.requesterUserAccountId());
     booking.setServiceFee(request.serviceFee());
+    booking.setRequesterPhoneNumber(request.requesterPhoneNumber());
     booking.setNotes(request.notes());
 
+    NotificationDTO notificationDTO;
     if (request.serviceFee().compareTo(BigDecimal.ZERO) == 0)
     {
       booking.setStatus(ViewingBookingStatus.PENDING);
       booking.setPaymentStatus(ViewingPaymentStatus.NOT_REQUIRED);
+
+      String msg = """
+        You have a new viewing booking. Please sign in to your account to view the details and confirm the booking.
+        """;
+      notificationDTO = new NotificationDTO(
+        "New viewing booking",
+        msg,
+        NotificationType.SMS,
+        rentalProfile.getPhoneNumber(),
+        null,
+        "VIEWING_BOOKING",
+        null
+      );
     }
     else
     {
       booking.setStatus(ViewingBookingStatus.DRAFT);
       booking.setPaymentStatus(ViewingPaymentStatus.AWAITING_PAYMENT);
       booking.setHoldExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusMinutes(holdMinutes));
+
+      String msg = """
+        You have a new viewing booking. Please sign in to your account to for pament. You have 10 minutes to complete payment.
+        """;
+      notificationDTO = new NotificationDTO(
+        "New viewing booking",
+        msg,
+        NotificationType.SMS,
+        request.requesterPhoneNumber(),
+        null,
+        "VIEWING_BOOKING",
+        null
+      );
     }
 
     ViewingBooking savedBooking = viewingBookingRepository.save(booking);
-    notificationService.createPendingNotification(
-      "Viewing booking created",
-      "Your viewing booking reference is " + savedBooking.getReference() + ".",
-      NotificationType.SMS,
-      rentalProfile.getPhoneNumber(),
-      rentalProfile.getEmail(),
-      "VIEWING_BOOKING",
-      String.valueOf(savedBooking.getId())
-    );
+
+    notificationService.createPendingNotification(notificationDTO);
     return toBookingDetails(savedBooking);
   }
 

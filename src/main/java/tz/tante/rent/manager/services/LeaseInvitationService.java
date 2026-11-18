@@ -9,6 +9,7 @@ import tz.tante.rent.manager.enums.LeaseStatus;
 import tz.tante.rent.manager.enums.LeaseInvitationStatus;
 import tz.tante.rent.manager.exceptions.ResourceExistException;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
+import tz.tante.rent.manager.messaging.models.NotificationDTO;
 import tz.tante.rent.manager.messaging.notification.NotificationService;
 import tz.tante.rent.manager.messaging.notification.enums.NotificationType;
 import tz.tante.rent.manager.models.dtos.requests.leaseinvitation.LeaseInvitationCreateDTO;
@@ -65,7 +66,7 @@ public class LeaseInvitationService
     lease.addInvitation(leaseInvitation);
 
     leaseInvitation = leaseInvitationRepository.save(leaseInvitation);
-    notificationService.createPendingNotification(
+    NotificationDTO notificationDTO = new NotificationDTO(
       "Lease invitation",
       leaseInvitation.getMessage(),
       NotificationType.SMS,
@@ -74,6 +75,7 @@ public class LeaseInvitationService
       "LEASE_INVITATION",
       String.valueOf(leaseInvitation.getId())
     );
+    notificationService.createPendingNotification(notificationDTO);
 
     return mapInvitationToDTO(lease.getId(), leaseInvitation);
   }

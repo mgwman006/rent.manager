@@ -106,6 +106,8 @@ notification:
     provider:
       afrika-talking:
         api:
+          sender:
+            id: tante
           url:
             bulk: https://api.africastalking.com/version1/messaging/bulk
           key: atsk_c09fe4415d92f0dfce03c9805ec5c49e49beed9c357d71334caebeb418d25c0638733520

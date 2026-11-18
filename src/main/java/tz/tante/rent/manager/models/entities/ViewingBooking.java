@@ -38,6 +38,8 @@ public class ViewingBooking extends BaseEntity {
   @Column(nullable = false)
   private Long requesterUserAccountId;
 
+  private String requesterPhoneNumber;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 24)
   private ViewingBookingStatus status = ViewingBookingStatus.DRAFT;
