@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tz.tante.rent.manager.clients.PaymentServiceClient;
+import tz.tante.rent.manager.enums.PaymentIntentStatus;
+import tz.tante.rent.manager.enums.TanteService;
 import tz.tante.rent.manager.enums.ViewingBookingStatus;
 import tz.tante.rent.manager.enums.ViewingPaymentStatus;
 import tz.tante.rent.manager.messaging.notification.NotificationService;
@@ -57,7 +59,7 @@ class ViewingPaymentCallbackTest
     when(viewingBookingRepository.findByReference("VB-123")).thenReturn(Optional.of(booking));
     when(viewingBookingRepository.save(booking)).thenReturn(booking);
 
-    viewingService.handlePaymentIntentCallback(intent("PAID"));
+    viewingService.handlePaymentIntentCallback(intent(PaymentIntentStatus.PAID));
 
     assertEquals(ViewingBookingStatus.PENDING, booking.getStatus());
     assertEquals(ViewingPaymentStatus.PAID, booking.getPaymentStatus());
@@ -70,7 +72,7 @@ class ViewingPaymentCallbackTest
     when(viewingBookingRepository.findByReference("VB-123")).thenReturn(Optional.of(booking));
     when(viewingBookingRepository.save(booking)).thenReturn(booking);
 
-    viewingService.handlePaymentIntentCallback(intent("FAILED"));
+    viewingService.handlePaymentIntentCallback(intent(PaymentIntentStatus.EXPIRED));
 
     assertEquals(ViewingPaymentStatus.FAILED, booking.getPaymentStatus());
   }
@@ -83,7 +85,7 @@ class ViewingPaymentCallbackTest
     booking.setPaymentStatus(ViewingPaymentStatus.PAID);
     when(viewingBookingRepository.findByReference("VB-123")).thenReturn(Optional.of(booking));
 
-    viewingService.handlePaymentIntentCallback(intent("SUCCESS"));
+    viewingService.handlePaymentIntentCallback(intent(PaymentIntentStatus.PAID));
 
     assertEquals(ViewingBookingStatus.PENDING, booking.getStatus());
   }
@@ -98,23 +100,22 @@ class ViewingPaymentCallbackTest
     return booking;
   }
 
-  private PaymentIntentDetailsDTO intent(String status)
+  private PaymentIntentDetailsDTO intent(PaymentIntentStatus status)
   {
     return new PaymentIntentDetailsDTO(
       1L,
       10L,
-      "VIEWING_FEE",
+      TanteService.VIEWING_BOOKING,
       "VB-123",
       BigDecimal.valueOf(5000),
       "TZS",
+      "",
+      "",
       status,
       null,
       null,
       null,
-      false,
-      LocalDateTime.now(),
-      null,
-      null
+      LocalDateTime.now()
     );
   }
 }
