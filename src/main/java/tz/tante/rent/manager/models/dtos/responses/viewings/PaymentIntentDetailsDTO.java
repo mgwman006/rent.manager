@@ -14,7 +14,7 @@ public record PaymentIntentDetailsDTO(
   String serviceReferenceNumber,
   BigDecimal amount,
   String currency,
-  String statusCallbackUrl,
+  String callbackUrl,
   String paymentLink,
   PaymentIntentStatus status,
   LocalDateTime createdAt,
