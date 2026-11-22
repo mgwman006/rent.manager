@@ -38,6 +38,7 @@ public class SecurityFilterChainConfig
         .requestMatchers(
           "/v1/auth/**",
           "/v1/sms/**",
+          "/v1/viewings/payment-callback",
           "/swagger-ui/**",
           "/swagger-ui.html",
           "/v3/api-docs/**"

@@ -82,9 +82,13 @@ app:
   tenant:
     base-url: ${TENANT_APP_BASE_URL:https://tenant.tante.tz}
     invitation-path: ${TENANT_INVITATION_PATH:/invitations}
+    viewing-payment-path: ${TENANT_VIEWING_PAYMENT_PATH:/viewings}
   landlord:
     base-url: ${LANDLORD_APP_BASE_URL:https://landlord.tante.tz}
     invitation-path: ${LANDLORD_INVITATION_PATH:/rental-profile/invitations}
+
+rent-manager:
+  public-base-url: ${RENT_MANAGER_PUBLIC_BASE_URL:http://localhost:8083/rent-manager}
 
 property:
     manager:

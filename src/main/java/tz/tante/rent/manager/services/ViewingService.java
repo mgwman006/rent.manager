@@ -1,8 +1,11 @@
 package tz.tante.rent.manager.services;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import tz.tante.rent.manager.clients.PaymentServiceClient;
+import tz.tante.rent.manager.enums.TanteService;
 import tz.tante.rent.manager.enums.ViewingBookingStatus;
 import tz.tante.rent.manager.enums.ViewingPaymentStatus;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
@@ -10,9 +13,12 @@ import tz.tante.rent.manager.exceptions.TanteException;
 import tz.tante.rent.manager.messaging.models.NotificationDTO;
 import tz.tante.rent.manager.messaging.notification.NotificationService;
 import tz.tante.rent.manager.messaging.notification.enums.NotificationType;
+import tz.tante.rent.manager.models.dtos.ApiResponse;
+import tz.tante.rent.manager.models.dtos.requests.viewings.CreateGenericPaymentIntentDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingBookingDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.RecordViewingOutcomeDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.UpdateViewingPaymentStatusDTO;
+import tz.tante.rent.manager.models.dtos.responses.viewings.PaymentIntentDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingBookingDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingOutcomeDetailsDTO;
 import tz.tante.rent.manager.models.entities.RentalProfile;
@@ -31,6 +37,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class ViewingService
 {
   /**
@@ -47,7 +54,8 @@ public class ViewingService
   private final RentalProfileRepository rentalProfileRepository;
   private final NotificationService notificationService;
   private final ViewingRefundNotifier viewingRefundNotifier;
-  private final int holdMinutes;
+  private final PaymentServiceClient paymentServiceClient;
+  private final String publicBaseUrl;
 
   public ViewingService(
     ViewingBookingRepository viewingBookingRepository,
@@ -55,14 +63,16 @@ public class ViewingService
     RentalProfileRepository rentalProfileRepository,
     NotificationService notificationService,
     ViewingRefundNotifier viewingRefundNotifier,
-    @Value("${viewing.booking.hold-minutes:15}") int holdMinutes
+    PaymentServiceClient paymentServiceClient,
+    @Value("${rent-manager.public-base-url:http://localhost:8083/rent-manager}") String publicBaseUrl
   ) {
     this.viewingBookingRepository = viewingBookingRepository;
     this.viewingOutcomeRepository = viewingOutcomeRepository;
     this.rentalProfileRepository = rentalProfileRepository;
     this.notificationService = notificationService;
     this.viewingRefundNotifier = viewingRefundNotifier;
-    this.holdMinutes = holdMinutes;
+    this.paymentServiceClient = paymentServiceClient;
+    this.publicBaseUrl = publicBaseUrl;
   }
 
   @Transactional
@@ -96,6 +106,8 @@ public class ViewingService
     booking.setServiceFee(request.serviceFee());
     booking.setRequesterPhoneNumber(request.requesterPhoneNumber());
     booking.setNotes(request.notes());
+    booking.setStatus(ViewingBookingStatus.DRAFT);
+    booking = viewingBookingRepository.save(booking);
 
     NotificationDTO notificationDTO;
     if (request.serviceFee().compareTo(BigDecimal.ZERO) == 0)
@@ -105,6 +117,8 @@ public class ViewingService
 
       String msg = """
         You have a new viewing booking. Please sign in to your account to view the details and confirm the booking.
+        
+        Umepata booking ya kuangalia nyumba. Tafadhali ingia kwenye akaunti yako ili kuona maelezo na kuthibitisha booking.
         """;
       notificationDTO = new NotificationDTO(
         "New viewing booking",
@@ -118,28 +132,62 @@ public class ViewingService
     }
     else
     {
-      booking.setStatus(ViewingBookingStatus.DRAFT);
+      PaymentIntentDetailsDTO paymentIntentDetails = generatePaymentIntent(booking);
+      String paymentLink = paymentIntentDetails.paymentLink();
+      booking.setHoldExpiresAt(paymentIntentDetails.expiresAt());
       booking.setPaymentStatus(ViewingPaymentStatus.AWAITING_PAYMENT);
-      booking.setHoldExpiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusMinutes(holdMinutes));
 
-      String msg = """
-        You have a new viewing booking. Please sign in to your account to for pament. You have 10 minutes to complete payment.
-        """;
+      booking.setPaymentUrl(paymentLink);
+      String msg = String.format(
+        "You have a new viewing booking (%s). Complete payment before %s via: %s",
+        booking.getReference(),
+        paymentIntentDetails.expiresAt(),
+        paymentLink
+      );
       notificationDTO = new NotificationDTO(
         "New viewing booking",
         msg,
         NotificationType.SMS,
         request.requesterPhoneNumber(),
         null,
-        "VIEWING_BOOKING",
-        null
+        booking.getReference(),
+        "VIEWING_BOOKING"
       );
     }
 
     ViewingBooking savedBooking = viewingBookingRepository.save(booking);
-
     notificationService.createPendingNotification(notificationDTO);
     return toBookingDetails(savedBooking);
+  }
+
+  @Transactional
+  public ViewingBookingDetailsDTO handlePaymentIntentCallback(PaymentIntentDetailsDTO intent)
+  {
+    if (intent == null || intent.serviceReferenceNumber() == null || intent.serviceReferenceNumber().isBlank())
+    {
+      throw new TanteException("Payment callback reference is required.");
+    }
+    if (intent.status() == null)
+    {
+      throw new TanteException("Payment callback status is required.");
+    }
+
+    ViewingPaymentStatus paymentStatus = mapPaymentIntentStatus(intent.status().name());
+    return updatePaymentStatus(
+      intent.serviceReferenceNumber(),
+      new UpdateViewingPaymentStatusDTO(paymentStatus, null)
+    );
+  }
+
+  private ViewingPaymentStatus mapPaymentIntentStatus(String status)
+  {
+    return switch (status.trim().toUpperCase())
+    {
+      case "PAID", "SUCCESS", "SUCCESSFUL", "SETTLED", "COMPLETED" -> ViewingPaymentStatus.PAID;
+      case "FAILED", "FAILURE", "CANCELLED", "CANCELED", "EXPIRED" -> ViewingPaymentStatus.FAILED;
+      case "REFUNDED", "REVERSED" -> ViewingPaymentStatus.REFUNDED;
+      default -> throw new TanteException("Unsupported payment intent status: " + status);
+    };
   }
 
   @Transactional
@@ -331,6 +379,46 @@ public class ViewingService
       .anyMatch(booking -> startTime.isBefore(booking.getEndTime()) && endTime.isAfter(booking.getStartTime()));
   }
 
+  private PaymentIntentDetailsDTO generatePaymentIntent(ViewingBooking booking)
+  {
+    PaymentIntentDetailsDTO intent = null;
+    try
+    {
+      ApiResponse<PaymentIntentDetailsDTO> response = paymentServiceClient.generatePaymentIntent(
+        new CreateGenericPaymentIntentDTO(
+          booking.getRequesterUserAccountId(),
+          booking.getServiceFee(),
+          "TZS",
+          TanteService.VIEWING_BOOKING,
+          booking.getReference(),
+          generateCallbackUrl(booking.getReference())
+        )
+      );
+      intent = unwrapResponse(response, "Unable to create payment intent.");
+    }
+    catch (Exception ex)
+    {
+      log.warn("Unable to fetch tantepay payment URL for booking {}: {}", booking.getReference(), ex.getMessage());
+    }
+    return intent;
+  }
+
+  private String generateCallbackUrl(String bookingReference)
+  {
+    return publicBaseUrl + "/v1/viewings/payment/callback?reference=" + bookingReference;
+  }
+
+
+  private <T> T unwrapResponse(ApiResponse<T> response, String fallbackMessage)
+  {
+    if (response == null || !response.isSuccess() || response.getData() == null)
+    {
+      String message = response != null && response.getMessage() != null ? response.getMessage() : fallbackMessage;
+      throw new TanteException(message);
+    }
+    return response.getData();
+  }
+
   private boolean holdsTheSlot(ViewingBooking booking, LocalDateTime now)
   {
     boolean isHoldingSlot = false;
@@ -373,6 +461,7 @@ public class ViewingService
       booking.getPaymentStatus(),
       booking.getPaymentUpdatedAt(),
       booking.getHoldExpiresAt(),
+      booking.getPaymentUrl(),
       booking.getNotes(),
       outcome
     );
