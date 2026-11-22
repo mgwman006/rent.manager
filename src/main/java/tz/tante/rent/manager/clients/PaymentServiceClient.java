@@ -20,6 +20,6 @@ public interface PaymentServiceClient {
   @PostMapping("/v1/payments/bookings/{bookingReference}/refunds")
   void requestRefund(@PathVariable("bookingReference") String bookingReference, @RequestParam("reason") String reason);
 
-  @GetMapping("/v1/payments/intents")
+  @PostMapping("/v1/payments/intents")
   ApiResponse<PaymentIntentDetailsDTO> generatePaymentIntent(@RequestBody CreateGenericPaymentIntentDTO dto);
 }

@@ -139,8 +139,7 @@ public class ViewingService
 
       booking.setPaymentUrl(paymentLink);
       String msg = String.format(
-        "You have a new viewing booking (%s). Complete payment before %s via: %s",
-        booking.getReference(),
+        "You have a new viewing booking. Click the link to complete payment before %s : %s",
         paymentIntentDetails.expiresAt(),
         paymentLink
       );
