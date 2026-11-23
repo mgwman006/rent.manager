@@ -16,6 +16,8 @@ jobs:
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       AUTH_ISSUER_URI: ${{ secrets.AUTH_ISSUER_URI }}
       PROPERTY_MANAGER_BASE_URL: ${{ secrets.PROPERTY_MANAGER_BASE_URL }}
+      TANTE_PAY_BASE_URL: ${{ secrets.TANTE_PAY_BASE_URL }}
+      RENT_MANAGER_PUBLIC_BASE_URL: ${{ secrets.RENT_MANAGER_PUBLIC_BASE_URL }}
       SERVER_PORT: 8083
 
     steps:
@@ -55,6 +57,8 @@ jobs:
            DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
            AUTH_ISSUER_URI='${{ secrets.AUTH_ISSUER_URI }}' \
            PROPERTY_MANAGER_BASE_URL='${{ secrets.PROPERTY_MANAGER_BASE_URL }}' \
+           TANTE_PAY_BASE_URL='${{ secrets.TANTE_PAY_BASE_URL }}' \
+           RENT_MANAGER_PUBLIC_BASE_URL='${{ secrets.RENT_MANAGER_PUBLIC_BASE_URL }}' \
            bash -s" << 'EOF'
 
           set -e
@@ -78,6 +82,8 @@ jobs:
             -e DB_PASSWORD="$DB_PASSWORD" \
             -e AUTH_ISSUER_URI="$AUTH_ISSUER_URI" \
             -e PROPERTY_MANAGER_BASE_URL="$PROPERTY_MANAGER_BASE_URL" \
+            -e TANTE_PAY_BASE_URL="$TANTE_PAY_BASE_URL" \
+            -e RENT_MANAGER_PUBLIC_BASE_URL="$RENT_MANAGER_PUBLIC_BASE_URL" \
             rent-manager:dev
 
           EOF

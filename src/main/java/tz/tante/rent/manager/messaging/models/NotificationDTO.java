@@ -1,12 +1,14 @@
 package tz.tante.rent.manager.messaging.models;
 
+import tz.tante.rent.manager.messaging.notification.enums.NotificationType;
+
 public record NotificationDTO(
   String title,
   String message,
-  String type,
+  NotificationType type,
   String recipientPhoneNumber,
   String recipientEmail,
-  String id
-)
+  String referenceId,
+  String referenceType)
 {
 }

@@ -38,6 +38,8 @@ public class ViewingBooking extends BaseEntity {
   @Column(nullable = false)
   private Long requesterUserAccountId;
 
+  private String requesterPhoneNumber;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 24)
   private ViewingBookingStatus status = ViewingBookingStatus.DRAFT;
@@ -57,6 +59,9 @@ public class ViewingBooking extends BaseEntity {
 
   @Column(length = 500)
   private String notes;
+
+  @Column(length = 500)
+  private String paymentUrl;
 
   @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
   private ViewingOutcome outcome;

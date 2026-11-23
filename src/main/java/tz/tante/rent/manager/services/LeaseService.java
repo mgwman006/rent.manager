@@ -13,6 +13,7 @@ import tz.tante.rent.manager.engines.rent.dtos.RentCollectionSummary;
 import tz.tante.rent.manager.enums.*;
 import tz.tante.rent.manager.exceptions.ResourceNotFoundException;
 import tz.tante.rent.manager.exceptions.TanteException;
+import tz.tante.rent.manager.messaging.models.NotificationDTO;
 import tz.tante.rent.manager.messaging.notification.NotificationService;
 import tz.tante.rent.manager.messaging.notification.enums.NotificationType;
 import tz.tante.rent.manager.models.dtos.requests.RentCreateDTO;
@@ -452,7 +453,7 @@ public class LeaseService
       return;
     }
 
-    notificationService.createPendingNotification(
+    NotificationDTO notificationDTO = new NotificationDTO(
       "Lease invitation",
       leaseInvitation.getMessage(),
       NotificationType.SMS,
@@ -461,6 +462,7 @@ public class LeaseService
       "LEASE_INVITATION",
       String.valueOf(leaseInvitation.getId())
     );
+    notificationService.createPendingNotification(notificationDTO);
   }
 
   private boolean isNotValidateLeaseDates(LocalDate startDate, LocalDate endDate)

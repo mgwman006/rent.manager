@@ -19,6 +19,7 @@ public record ViewingBookingDetailsDTO(
   ViewingPaymentStatus paymentStatus,
   LocalDateTime paymentUpdatedAt,
   LocalDateTime holdExpiresAt,
+  String paymentUrl,
   String notes,
   ViewingOutcomeDetailsDTO outcome
 ) {
