@@ -86,6 +86,9 @@ app:
     base-url: ${LANDLORD_APP_BASE_URL:https://landlord.tante.tz}
     invitation-path: ${LANDLORD_INVITATION_PATH:/rental-profile/invitations}
 
+rent-manager:
+  public-base-url: ${RENT_MANAGER_PUBLIC_BASE_URL:http://localhost:8083/rent-manager}
+
 property:
     manager:
       base:
@@ -106,6 +109,8 @@ notification:
     provider:
       afrika-talking:
         api:
+          sender:
+            id: tante
           url:
             bulk: https://api.africastalking.com/version1/messaging/bulk
           key: atsk_c09fe4415d92f0dfce03c9805ec5c49e49beed9c357d71334caebeb418d25c0638733520

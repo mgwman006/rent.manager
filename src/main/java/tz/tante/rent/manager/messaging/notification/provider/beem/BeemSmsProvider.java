@@ -14,7 +14,6 @@ import java.util.Base64;
 import java.util.List;
 
 @Component
-@Primary
 @RequiredArgsConstructor
 public class BeemSmsProvider implements SmsProvider
 {

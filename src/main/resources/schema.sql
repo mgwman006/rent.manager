@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS viewing_bookings
   start_time                DATETIME(6)                                                                                   NOT NULL,
   end_time                  DATETIME(6)                                                                                   NOT NULL,
   requester_user_account_id BIGINT                                                                                        NOT NULL,
+  requester_phone_number    VARCHAR(255)                                                                                  DEFAULT NULL,
   status                    ENUM ('CANCELLED','CLOSED','CONFIRMED','DRAFT','EXPIRED','PENDING','REJECTED','RESCHEDULED')  NOT NULL,
   service_fee               DECIMAL(38, 2)                                                                                NOT NULL,
   payment_status            ENUM ('AWAITING_PAYMENT','FAILED','NOT_REQUIRED','PAID','REFUNDED')                           NOT NULL,

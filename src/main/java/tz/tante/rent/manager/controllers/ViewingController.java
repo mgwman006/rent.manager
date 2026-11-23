@@ -9,6 +9,7 @@ import tz.tante.rent.manager.models.dtos.ApiResponse;
 import tz.tante.rent.manager.models.dtos.requests.viewings.CreateViewingBookingDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.RecordViewingOutcomeDTO;
 import tz.tante.rent.manager.models.dtos.requests.viewings.UpdateViewingPaymentStatusDTO;
+import tz.tante.rent.manager.models.dtos.responses.viewings.PaymentIntentDetailsDTO;
 import tz.tante.rent.manager.models.dtos.responses.viewings.ViewingBookingDetailsDTO;
 import tz.tante.rent.manager.services.ViewingService;
 
@@ -40,6 +41,15 @@ public class ViewingController {
     @Valid @RequestBody UpdateViewingPaymentStatusDTO request
   ) {
     ViewingBookingDetailsDTO response = viewingService.updatePaymentStatus(reference, request);
+    return ResponseEntity.status(HttpStatus.OK)
+      .body(ApiResponse.success(response, HttpStatus.OK.value()));
+  }
+
+  @PostMapping("/payment/callback")
+  public ResponseEntity<ApiResponse<ViewingBookingDetailsDTO>> handlePaymentCallback(
+    @RequestBody PaymentIntentDetailsDTO intent
+  ) {
+    ViewingBookingDetailsDTO response = viewingService.handlePaymentIntentCallback(intent);
     return ResponseEntity.status(HttpStatus.OK)
       .body(ApiResponse.success(response, HttpStatus.OK.value()));
   }

@@ -6,6 +6,7 @@ import java.util.List;
 
 public record AfrikaTalkingSmsRequest(
   String username,
+  String senderId,
   String message,
   @JsonProperty("phoneNumbers") List<String> phoneNumbers
 )

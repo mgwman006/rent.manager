@@ -2,6 +2,7 @@ package tz.tante.rent.manager.messaging.notification.provider.afrikatalking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import tz.tante.rent.manager.clients.AfrikaTalkingSmsClient;
 import tz.tante.rent.manager.exceptions.TanteException;
@@ -11,6 +12,7 @@ import tz.tante.rent.manager.messaging.notification.SmsResponse;
 import java.util.List;
 
 @Component
+@Primary
 @RequiredArgsConstructor
 public class AfrikaTalkingSmsProvider implements SmsProvider
 {
@@ -22,10 +24,13 @@ public class AfrikaTalkingSmsProvider implements SmsProvider
   @Value("${notification.sms.provider.afrika-talking.api.username}")
   private String username;
 
+  @Value("${notification.sms.provider.afrika-talking.api.sender.id}")
+  private String senderId;
+
   @Override
   public SmsResponse sendSms(String phoneNumber, String message)
   {
-    AfrikaTalkingSmsRequest request = new AfrikaTalkingSmsRequest(username, message, List.of(phoneNumber));
+    AfrikaTalkingSmsRequest request = new AfrikaTalkingSmsRequest(username, senderId, message, List.of(phoneNumber));
     AfrikaTalkingSmsResponse response = afrikaTalkingSmsClient.sendSms(apiKey, request);
 
     if (response == null || response.smsMessageData() == null || response.smsMessageData().recipients() == null || response.smsMessageData().recipients().isEmpty())
