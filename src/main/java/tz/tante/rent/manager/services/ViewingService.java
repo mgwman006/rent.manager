@@ -64,7 +64,7 @@ public class ViewingService
     NotificationService notificationService,
     ViewingRefundNotifier viewingRefundNotifier,
     PaymentServiceClient paymentServiceClient,
-    @Value("${rent-manager.public-base-url:http://localhost:8083/rent-manager}") String publicBaseUrl
+    @Value("${rent-manager.public-base-url:http://localhost:8083}") String publicBaseUrl
   ) {
     this.viewingBookingRepository = viewingBookingRepository;
     this.viewingOutcomeRepository = viewingOutcomeRepository;
@@ -404,7 +404,7 @@ public class ViewingService
 
   private String generateCallbackUrl(String bookingReference)
   {
-    return publicBaseUrl + "/v1/viewings/payment/callback?reference=" + bookingReference;
+    return publicBaseUrl +"/rent-manager"+ "/v1/viewings/payment/callback?reference=" + bookingReference;
   }
 
 
